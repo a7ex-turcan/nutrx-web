@@ -1,0 +1,379 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import StatusBar from '../components/StatusBar.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { getTools, type Tool } from '../lib/products';
+
+/* One page per rtf* tool: /rtfm/, /rtfq/, ... Copy from src/content/tools/<id>.yaml. */
+export async function getStaticPaths() {
+  const [pages, tools] = await Promise.all([getCollection('tools'), getTools()]);
+  return pages.map((page) => {
+    const tool = tools.find((t) => t.id === page.id);
+    if (!tool) throw new Error(`src/content/tools/${page.id}.yaml has no matching tool in products.json`);
+    return { params: { tool: page.id }, props: { tool, copy: page.data, others: tools.filter((t) => t.id !== page.id) } };
+  });
+}
+
+interface Props {
+  tool: Tool;
+  copy: CollectionEntry<'tools'>['data'];
+  others: Tool[];
+}
+const { tool, copy, others } = Astro.props;
+const lab = tool.status === 'lab';
+const comments: string[] = 'comment_lines' in tool ? tool.comment_lines : [tool.comment];
+const install = [...comments.map((c) => `# ${c}`), ...tool.commands];
+const [repo, ...more] = tool.links;
+const pad = (n: number) => String(n + 1).padStart(2, '0');
+// `backticks` in the copy mark commands and identifiers: shown as inline code that never wraps.
+const parts = (text: string) => text.split('`').map((t, i) => ({ t, code: i % 2 === 1 }));
+---
+
+<Base title={`${tool.name}: ${tool.expansion} · nutrx labs`} description={copy.description}>
+  <div class="container">
+    <Header />
+    <main>
+      <section class="hero">
+        <div class="hero__copy">
+          <p class="crumb mono muted">
+            <span class="accent">$</span> cd <a href="/#tools" class="crumb__link">~/nutrx-labs/tools</a>/{tool.id}
+          </p>
+          <div class="ident">
+            <span class:list={['ident__name', { 'ident__name--lab': lab }]}>{tool.name}</span>
+            <span class="ident__exp">{tool.expansion}</span>
+            <span class:list={['badge', { 'badge--lab': lab }]}>{tool.badge}</span>
+          </div>
+          <h1>{copy.tagline}</h1>
+          <p class="lead">{parts(copy.lead).map((p) => (p.code ? <code>{p.t}</code> : p.t))}</p>
+          <ul class="chips" aria-label="Interfaces">
+            {tool.interfaces.map((i) => <li>{i}</li>)}
+          </ul>
+          <div class="actions">
+            <a href={repo.href} class="btn btn-primary">{lab ? 'Follow it on GitHub ↗' : 'View on GitHub ↗'}</a>
+            {more.map((l) => <a href={l.href} class="btn btn-outline">{l.label[0].toUpperCase() + l.label.slice(1)} ↗</a>)}
+          </div>
+        </div>
+
+        <div class="term mono">
+          <div class="term__bar"><span>alex@nutrx-labs: ~/{tool.id}</span><span>zsh</span></div>
+          <CodeBlock lines={install} label={`Copy ${tool.name} commands`} bare />
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="what">
+        <div class="section-head">
+          <div class="section-head__title">
+            <p class="section-head__label">// what it does</p>
+            <h2 id="what">{lab ? 'What it will do' : 'What it does'}</h2>
+          </div>
+        </div>
+        <div class="highlights">
+          {
+            copy.highlights.map((h) => (
+              <article class="card highlight">
+                <h3>{h.title}</h3>
+                <p class="card__desc">{parts(h.body).map((p) => (p.code ? <code>{p.t}</code> : p.t))}</p>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="how">
+        <div class="section-head">
+          <div class="section-head__title">
+            <p class="section-head__label">// how it works</p>
+            <h2 id="how">{lab ? 'How it will work' : 'How it works'}</h2>
+          </div>
+        </div>
+        <ol class="steps">
+          {
+            copy.steps.map((s, i) => (
+              <li class="step">
+                <span class="step__n mono" aria-hidden="true">{pad(i)}</span>
+                <div class="step__body">
+                  <h3>{s.title}</h3>
+                  <p class="card__desc">{parts(s.body).map((p) => (p.code ? <code>{p.t}</code> : p.t))}</p>
+                  {s.code && (
+                    <CodeBlock
+                      lines={s.code.trimEnd().split('\n')}
+                      kind={s.kind}
+                      label={`Copy the commands for step ${i + 1}`}
+                    />
+                  )}
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <section class="section" aria-labelledby="notes">
+        <div class="section-head">
+          <div class="section-head__title">
+            <p class="section-head__label">// good to know</p>
+            <h2 id="notes">Good to know</h2>
+          </div>
+        </div>
+        <ul class="notes">
+          {copy.notes.map((n) => <li>{parts(n).map((p) => (p.code ? <code>{p.t}</code> : p.t))}</li>)}
+        </ul>
+      </section>
+
+      <section class="section">
+        <div class="card more">
+          <div class="more__readme">
+            <p class="section-head__label">// the full manual</p>
+            <p class="more__title">Everything else is in the README.</p>
+            <p class="muted">Configuration, every command, troubleshooting and the design notes.</p>
+            <a href={`${repo.href}#readme`} class="btn btn-outline more__btn">Read the README ↗</a>
+          </div>
+          <nav class="more__others" aria-label="Other rtf* tools">
+            <p class="section-head__label">// the rest of the family</p>
+            {
+              others.map((t) => (
+                <a href={`/${t.id}/`} class="other">
+                  <span class:list={['other__name mono', { 'other__name--lab': t.status === 'lab' }]}>{t.name}</span>
+                  <span class="other__exp muted">{t.expansion}</span>
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+      </section>
+    </main>
+    <Footer />
+  </div>
+  <StatusBar />
+</Base>
+
+<style>
+  main :global(p code),
+  main :global(li code) {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--chip);
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    white-space: nowrap;
+  }
+
+  .hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 48px 64px;
+    padding: clamp(48px, 6vw, 96px) 0 clamp(64px, 7vw, 112px);
+  }
+  .hero__copy {
+    flex: 1 1 520px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .crumb { font-size: 13px; }
+  .crumb__link {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--line-2);
+    text-underline-offset: 3px;
+    /* Grow the hit area to 44px without moving the line. */
+    display: inline-block;
+    padding: 13px 0;
+    margin: -13px 0;
+  }
+  .crumb__link:hover { color: var(--accent); text-decoration-color: currentColor; }
+
+  .ident {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+  .ident__name {
+    font-family: var(--font-mono);
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--accent-lg);
+  }
+  .ident__name--lab { color: var(--fg-2); }
+  .ident__exp {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .ident .badge { align-self: center; }
+
+  h1 {
+    font-weight: 600;
+    font-size: clamp(40px, 5vw, 72px);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .lead {
+    max-width: 600px;
+    font-size: clamp(17px, 1.3vw, 19px);
+    line-height: 1.6;
+    color: var(--fg-2);
+    text-wrap: pretty;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+  .chips li {
+    padding: 3px 9px;
+    border-radius: var(--radius-chip);
+    background: var(--chip);
+    color: var(--fg-2);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+
+  .term {
+    flex: 1 1 420px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    overflow: hidden;
+  }
+  .term__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+    gap: 20px;
+  }
+  .highlight { gap: 10px; }
+  .highlight h3,
+  .step h3 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    max-width: 880px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 0 20px;
+    padding: 28px 0;
+    border-top: 1px solid var(--line);
+  }
+  .step:last-child { border-bottom: 1px solid var(--line); }
+  .step__n {
+    padding-top: 4px;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .step__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+  .step__body :global(.code) { margin-top: 6px; }
+
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+    gap: 14px 48px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .notes li {
+    position: relative;
+    padding-left: 24px;
+    color: var(--fg-2);
+    font-size: 16px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+  .notes li::before {
+    content: '#';
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+
+  .more {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 32px 64px;
+  }
+  .more__readme {
+    flex: 1 1 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .more__title {
+    font-size: clamp(24px, 2.4vw, 32px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+  .more__btn { margin-top: 10px; }
+  .more__others {
+    flex: 1 1 320px;
+    display: flex;
+    flex-direction: column;
+  }
+  .more__others .section-head__label { margin-bottom: 6px; }
+  .other {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+    padding: 0 8px;
+    margin: 0 -8px;
+    border-radius: 6px;
+    transition: background-color 0.12s ease;
+  }
+  .other:hover { background: var(--chip); }
+  .other__name {
+    flex: none;
+    width: 56px;
+    color: var(--accent);
+    font-size: 14px;
+  }
+  .other__name--lab { color: var(--fg-2); }
+  .other__exp { font-family: var(--font-mono); font-size: 12.5px; }
+</style>

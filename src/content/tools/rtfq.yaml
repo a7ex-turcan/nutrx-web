@@ -1,0 +1,48 @@
+tagline: "Give agents the data, not the connection string."
+lead: "rtfq runs on the box that can see your databases and gives agents and people one authenticated port to query through. Reads are parsed, capped and logged. Writes are tried, rolled back, and shown to a human as the statement and the rows it touches, and saved only once somebody says yes."
+description: "Self-hosted binary that gives AI agents governed, audited access to PostgreSQL, SQL Server and MongoDB. Read by default; writes wait for a human."
+highlights:
+  - title: "The agent never sees the credentials"
+    body: "rtfq holds the connection strings, the policy and the audit log. A caller gets a bearer token and that token's grants, nothing else. A source it isn't granted looks exactly like one that doesn't exist."
+  - title: "Reads that are actually reads"
+    body: "Every statement goes through a real per-dialect parser before it runs. A write hiding in a CTE, a SELECT INTO or an EXPLAIN ANALYZE is refused. Every response states its row count, whether it was truncated and how long it took."
+  - title: "Approve the rows, not the agent's summary"
+    body: "A proposed change runs in a transaction, reports the real affected-row count and is rolled back. You see the statement and the rows as they are now. If the data moves while you decide, the commit is refused."
+  - title: "Shut until you open it"
+    body: "With `require_unlock`, a source stays closed to writes until someone runs `rtfq unlock`. The window is capped at an hour and a restart locks it again. Unqualified UPDATE and DELETE are refused either way."
+  - title: "Light on context"
+    body: "`rtfq mcp` exposes nine tools and four workflow prompts. Getting oriented in an unfamiliar four-table database and answering a join question costs about 240 tokens end to end, a number checked in CI."
+  - title: "An audit log that stays home"
+    body: "Every request, refusals included, lands in an append-only JSONL file with the caller, the statement, the outcome and the error code. It stays on the box. There is no control plane, and there won't be one."
+steps:
+  - title: "Copy one binary onto your PATH"
+    body: "Grab a bundle from Releases. It's a single self-contained binary, no .NET runtime to install, with a sample config alongside. On macOS, clear the quarantine flag first."
+    code: |
+      sudo install -m 0755 rtfq /usr/local/bin/rtfq
+      rtfq --version
+  - title: "Describe your sources in one YAML file"
+    body: "The config references secrets through `${env:...}` or `${file:...}` rather than containing them. Validate it before anything listens; `--production` turns inline-secret warnings into errors."
+    code: |
+      rtfq validate --config /etc/rtfq/rtfq.yaml --production
+  - title: "Query it from wherever you are"
+    body: "Set `RTFQ_SERVER` and `RTFQ_TOKEN`, then ask what's there. Off loopback, TLS is required; a self-signed certificate is fine on a private network."
+    code: |
+      rtfq sources
+      rtfq describe --source orders
+      rtfq query --source orders "SELECT id, customer, total FROM orders WHERE vip" --max-rows 20
+  - title: "Point an agent at it"
+    body: "`rtfq mcp` speaks MCP on stdio and reads the server and token from its environment, so no secret ends up in a committed `.mcp.json`. Claude Code and other MCP clients use the same command."
+    code: |
+      rtfq mcp
+  - title: "Open a write window when you mean to"
+    body: "Unlock a source for a fixed time. The agent proposes, you approve or deny from a second terminal, and a restart closes the window anyway. For a team, a webhook can route requests to people instead."
+    code: |
+      rtfq unlock orders --write --ttl 15m
+      rtfq approvals --watch
+notes:
+  - "Early days. Approval and unlock have landed; packaging and a proper quickstart are the next milestone. Expect rough edges."
+  - "Built for a private network. There is no rate limiting, no lockout after failed tokens, and tokens don't rotate. For remote callers, use a VPN or an SSH tunnel, not the public internet."
+  - "Builds for Linux x64 and arm64, Windows x64 and Apple Silicon Macs. Intel Macs and Windows on ARM are not built, on purpose."
+  - "Linux needs libicu on the host and glibc 2.34 or newer, so Debian 12, Ubuntu 22.04 and RHEL 9 are fine. Minimal containers usually lack libicu."
+  - "Nothing notifies you of a pending approval by default. Keep `rtfq approvals --watch` open or configure a webhook, or proposals lapse unanswered."
+  - "The agent can't approve its own writes. Give each human their own token with a write grant, so the audit log names who said yes."

@@ -16,12 +16,16 @@ import '@fontsource/martian-mono/latin-ext-600.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
 
-const title = 'nutrx labs — tools for AI developers, calm iOS apps';
-const description =
-  'Self-hosted rtf* tools for working alongside AI agents, and privacy-first iOS apps with no accounts. Built in Chișinău, Moldova.';
-const ogDescription =
-  'Self-hosted rtf* tools for working alongside AI agents, and privacy-first iOS apps with no accounts.';
-const canonical = new URL('/', Astro.site).href;
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'nutrx labs — tools for AI developers, calm iOS apps',
+  description = 'Self-hosted rtf* tools for working alongside AI agents, and privacy-first iOS apps with no accounts. Built in Chișinău, Moldova.',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL('/og.png', Astro.site).href;
 ---
 
@@ -40,7 +44,7 @@ const ogImage = new URL('/og.png', Astro.site).href;
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="nutrx labs" />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={ogDescription} />
+    <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />

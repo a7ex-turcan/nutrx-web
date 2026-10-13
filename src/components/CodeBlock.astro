@@ -1,0 +1,114 @@
+---
+/*
+ * A command block: "# comment" lines in muted, everything else as a "$" command.
+ * The copy button copies only the commands, without the prompt.
+ */
+interface Props {
+  lines: string[];
+  label?: string; // accessible name for the copy button, e.g. "Copy rtfm install commands"
+  kind?: 'shell' | 'config'; // config: shown as-is, no prompt, no copy button
+  bare?: boolean; // no border or fill, for use inside a terminal panel
+}
+const { lines, label = 'Copy commands', kind = 'shell', bare = false } = Astro.props;
+const parsed = lines.map((l) => ({ comment: l.trimStart().startsWith('#'), text: l }));
+const copyable = kind === 'shell' && parsed.some((l) => !l.comment);
+---
+
+<div class:list={['code', { 'code--bare': bare }]} data-code>
+  <div class:list={['code__scroll', { 'code__scroll--copy': copyable }]}>
+    {
+      parsed.map((l) =>
+        l.comment ? (
+          <div class="muted">{l.text}</div>
+        ) : kind === 'config' ? (
+          <div>{l.text}</div>
+        ) : (
+          <div>
+            <span class="accent" aria-hidden="true">$</span> <span data-cmd>{l.text}</span>
+          </div>
+        ),
+      )
+    }
+  </div>
+  {
+    copyable && (
+      <button type="button" class="copy" aria-label={label} data-copy>
+        <svg class="copy__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="12" height="12" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+        <svg class="copy__done" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </button>
+    )
+  }
+</div>
+
+<script>
+  /* Copy buttons: copy the commands of their block, without the "$" prompt. */
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    let timer: number | undefined;
+    btn.addEventListener('click', async () => {
+      const block = btn.closest('[data-code]');
+      if (!block || !navigator.clipboard) return;
+      const text = Array.from(block.querySelectorAll('[data-cmd]'), (el) => el.textContent?.trim() ?? '').join('\n');
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        return;
+      }
+      btn.classList.add('is-copied');
+      clearTimeout(timer);
+      timer = window.setTimeout(() => btn.classList.remove('is-copied'), 1500);
+    });
+  });
+</script>
+
+<style>
+  .code {
+    position: relative;
+    min-width: 0;
+    background: var(--code);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-code);
+  }
+  .code__scroll {
+    overflow-x: auto;
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    white-space: pre;
+  }
+  .code__scroll--copy { padding-right: 56px; }
+  .code--bare {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .code--bare .code__scroll { padding: 18px 20px 20px; }
+  .code--bare .code__scroll--copy { padding-right: 56px; }
+  .code--bare .copy { background: var(--surface); }
+  .copy {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: var(--code);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+  .copy:hover { color: var(--fg); }
+  .copy__done { display: none; }
+  .copy.is-copied .copy__icon { display: none; }
+  .copy.is-copied .copy__done { display: block; color: var(--accent); }
+</style>

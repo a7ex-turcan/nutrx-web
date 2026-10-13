@@ -1,0 +1,45 @@
+tagline: "AI reviews on your PRs. The agent only gets to read."
+lead: "rtfd will watch your pull requests, hand each one to the agent you choose, and post one review with inline comments. The agent reads and rtfd does the writing, so a hostile PR can't talk its way into your repo. It's in the lab: the design is settled, the build is in progress."
+description: "rtfd (Read The Fine Diff) is a PR review watcher for any AI agent. The agent runs read-only; rtfd posts one review. In the lab, not yet released."
+highlights:
+  - title: "The agent never holds a token"
+    body: "rtfd fetches the PR and posts the review itself. The agent gets a checkout, the diff, CI state and open threads as files, and no provider token. The worst a malicious PR can get out of it is a bad review, never a bad write."
+  - title: "No shell, nothing from your setup"
+    body: "Git history comes through `rtfd-git`: four read commands with fixed command lines. No plugins, none of your MCP servers, and agent config in the PR is reset to the base branch first. `rtfd validate` lists every tool the agent ends up with."
+  - title: "The verdict comes from policy"
+    body: "The agent writes findings; rtfd decides the verdict. Any open Should means not ready, so a review can never say \"ready\" next to two Shoulds. Every comment is scanned for secrets before it goes out."
+  - title: "Follow-ups, not repeat reviews"
+    body: "After the author pushes fixes, rtfd reviews only what changed, replies \"Looks good now.\" on each fixed thread, resolves it, and leaves the rest alone."
+  - title: "Reads like a person wrote it"
+    body: "Should, Could, MINOR. Short, and no bot marker. The tone lives in a per-repo prompt that rtfd re-reads on every run, so you edit the brief, not the code."
+  - title: "Usage limits don't eat retries"
+    body: "When the agent hits its plan's limit, rtfd pauses until the stated reset time, for every repo on that account, and gives the attempt back. No more three failed attempts in eleven minutes."
+steps:
+  - title: "Point it at a repo"
+    body: "One YAML file says which repos to watch, which agent reviews each, which prompt it follows and whose PRs count. The token stays in an environment variable; the config only names it. This is the draft config from the design and may change."
+    kind: config
+    code: |
+      # planned config (draft, from the design docs)
+      repos:
+        - name: myapp
+          provider: github
+          repo: your-name/myapp
+          agent: claude
+          prompt: prompts/review.md   # your tone, re-read on every run
+          authors: [your-name]        # only these authors' PRs get reviewed
+          token_env: GH_TOKEN         # the name of the variable, never the token
+  - title: "A PR opens, or gets a new push"
+    body: "rtfd polls GitHub, waits for the pushes to settle and for CI to finish, then starts one review per new head. PRs from authors outside the allowlist, and from forks, are skipped."
+  - title: "rtfd sets the table"
+    body: "It fetches the PR into its own mirror, so your clones aren't touched, and checks it out. Agent config files go back to the base branch's version. The diff, CI state and open threads land in a run folder for the agent."
+  - title: "The agent reads and answers in JSON"
+    body: "Your agent runs read-only, in a scrubbed environment, and returns a findings document. Any CLI that can print JSON can fill the role: Claude Code first, Copilot CLI next."
+  - title: "rtfd posts one review, then checks it landed"
+    body: "It validates the findings, works out the verdict, posts a single review with inline comments and reads it back to confirm. One long-running process covers every repo, and `rtfd status` answers \"is it watching?\""
+notes:
+  - "Not released. rtfd is in the lab: the design is settled and the build is in progress. There is nothing to install yet, and this page describes what it is being built to do."
+  - "Where the build is: an early version can run a review and print it, but posting, follow-ups and the long-running watcher are still ahead in the plan."
+  - "The first version targets GitHub and Claude Code. Bitbucket and Copilot CLI come next. GitLab, Azure DevOps and webhooks are on the later list."
+  - "Made for repos where you trust the authors: their PR text and code reach the agent. An untrusted tier for public repos open to anyone is planned for later."
+  - "GitHub doesn't let you approve your own PR, so when rtfd posts as the PR author, the review goes up as a comment."
+  - "MIT licensed. The secret check bundles the gitleaks rule set, also MIT."

@@ -1,5 +1,6 @@
 ---
 import type { Tool } from '../lib/products';
+import CodeBlock from './CodeBlock.astro';
 
 interface Props {
   tool: Tool;
@@ -7,14 +8,14 @@ interface Props {
 const { tool } = Astro.props;
 const lab = tool.status === 'lab';
 const comments: string[] = 'comment_lines' in tool ? tool.comment_lines : [tool.comment];
-const commands: string[] = tool.commands;
-const copyLabel = `Copy ${tool.name} ${commands.length > 1 ? 'commands' : 'command'}`;
+const lines = [...comments.map((c) => `# ${c}`), ...tool.commands];
+const copyLabel = `Copy ${tool.name} ${tool.commands.length > 1 ? 'commands' : 'command'}`;
 ---
 
 <article id={tool.id} class:list={['card', { 'card--lab': lab }]}>
   <div class="tool__head">
     <div class="tool__title">
-      <h3 class="tool__name">{tool.name}</h3>
+      <h3 class="tool__name"><a href={`/${tool.id}/`}>{tool.name}</a></h3>
       <p class="tool__exp">{tool.expansion}</p>
     </div>
     <span class:list={['badge', { 'badge--lab': lab }]}>{tool.badge}</span>
@@ -26,29 +27,7 @@ const copyLabel = `Copy ${tool.name} ${commands.length > 1 ? 'commands' : 'comma
 
   <p class="card__desc">{tool.description}</p>
 
-  <div class="code" data-code>
-    <div class:list={['code__scroll', { 'code__scroll--copy': commands.length > 0 }]}>
-      {comments.map((c) => <div class="muted"># {c}</div>)}
-      {commands.map((c) => (
-        <div>
-          <span class="accent" aria-hidden="true">$</span> <span data-cmd>{c}</span>
-        </div>
-      ))}
-    </div>
-    {
-      commands.length > 0 && (
-        <button type="button" class="copy" aria-label={copyLabel} data-copy>
-          <svg class="copy__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="9" y="9" width="12" height="12" rx="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-          <svg class="copy__done" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </button>
-      )
-    }
-  </div>
+  <CodeBlock lines={lines} label={copyLabel} />
 
   <div class="tool__links mono">
     {
@@ -87,6 +66,16 @@ const copyLabel = `Copy ${tool.name} ${commands.length > 1 ? 'commands' : 'comma
     color: var(--accent-lg);
   }
   .card--lab .tool__name { color: var(--fg-2); }
+  /* The name links to the tool's page; padding grows the hit area to 44px without moving the layout. */
+  .tool__name a {
+    display: inline-block;
+    padding: 4px 0;
+    margin: -4px 0;
+    color: inherit;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  .tool__name a:hover { text-decoration-line: underline; }
   .tool__exp {
     font-family: var(--font-mono);
     font-size: 12.5px;
@@ -108,43 +97,6 @@ const copyLabel = `Copy ${tool.name} ${commands.length > 1 ? 'commands' : 'comma
     background: var(--chip);
     color: var(--fg-2);
   }
-
-  .code {
-    position: relative;
-    background: var(--code);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-code);
-  }
-  .code__scroll {
-    overflow-x: auto;
-    padding: 14px 16px;
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    line-height: 1.8;
-    white-space: nowrap;
-  }
-  .code__scroll--copy { padding-right: 56px; }
-  .copy {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 0;
-    border-radius: 8px;
-    background: var(--code);
-    color: var(--muted);
-    cursor: pointer;
-    transition: color 0.15s ease;
-  }
-  .copy:hover { color: var(--fg); }
-  .copy__done { display: none; }
-  .copy:global(.is-copied) .copy__icon { display: none; }
-  .copy:global(.is-copied) .copy__done { display: block; color: var(--accent); }
 
   .tool__links {
     margin-top: auto;

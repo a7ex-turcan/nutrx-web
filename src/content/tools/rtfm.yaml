@@ -1,0 +1,42 @@
+tagline: "Your agent reads the docs, so you don't paste them."
+lead: "rtfm indexes the documentation you already have, from Confluence exports and PDFs to draw.io diagrams and SQL schemas, into a search index on your machine. Your coding agent asks it questions over MCP and gets back the relevant passages, with their sources."
+description: "Local documentation search for AI agents. rtfm indexes Confluence exports, Word, PDF, Markdown and more on your machine and serves hybrid search over MCP."
+highlights:
+  - title: "Exact terms and vague questions"
+    body: "Lexical search finds the endpoint name you typed verbatim. Local semantic embeddings find the page that explains the concept in other words. A local reranker then puts the best passages first."
+  - title: "Reads each format properly"
+    body: "Confluence .doc exports are unpacked from MHTML, PDF headings are inferred, draw.io diagrams become shapes and connections, SQL dumps become tables with foreign keys, and images are OCR'd. Not a dumb text dump."
+  - title: "Nothing leaves your machine"
+    body: "OpenSearch runs in a local container, the models run in-process and OCR ships inside the tool. No external APIs, no cloud accounts. Offline, search steps down to lexical-only instead of breaking."
+  - title: "Works with the agent you use"
+    body: "A standard stdio MCP server: Claude Code, Cursor, VS Code, Zed, Windsurf, Cline, Claude Desktop. `rtfm mcp-config` prints the right snippet for each client, or merges it into the config file for you."
+  - title: "Keeps up with the source"
+    body: "`rtfm watch` picks up edits, renames and deletes within seconds. Jira tickets and Confluence pages can be pulled straight from Atlassian Cloud, read-only, and re-indexed when they change."
+  - title: "Schema first, then the query"
+    body: "Point a `.rtfmdb` file at Postgres or SQL Server and the live schema is indexed. Opt in, and the agent can query rows too: read-only unless you allow writes, capped at 500 rows by default."
+steps:
+  - title: "Index a folder of docs"
+    body: "Point rtfm at a folder and name the project. Every supported file is converted to markdown, split into heading-aware chunks and indexed. The first run downloads the embedding and reranker models, about 90 MB each, once."
+    code: |
+      rtfm index ~/docs/myproject --project myproject
+  - title: "Check it from the terminal"
+    body: "Search before you hand it to an agent. You get the top five hits with a score, the heading breadcrumb, the source file and its last-modified date."
+    code: |
+      rtfm search "something you know is in the docs" --project myproject
+  - title: "Wire up your agent"
+    body: "Generate the MCP config for your client, or let `rtfm merge` it in place, with a .bak backup. The `.mcp.json` is the same in every repo except `RTFM_PROJECT`, so it is safe to commit and each repo searches its own docs."
+    code: |
+      rtfm mcp-config --client claude-code --write
+  - title: "Ask a question"
+    body: "Ask your agent in plain words. It calls `search_docs`, pulls the surrounding section with `get_document` when a snippet is not enough, and answers from your docs instead of from memory."
+  - title: "Keep the index fresh"
+    body: "Run the watcher and it catches up on anything that changed while it was off, then follows edits as they happen across every folder you have indexed."
+    code: |
+      rtfm watch --all
+notes:
+  - "Needs .NET 10 and Docker. On native Linux, also set vm.max_map_count=262144 or OpenSearch will not start. Runs on Windows, macOS and Linux."
+  - "On macOS and Linux, `~/.dotnet/tools` is often not on your PATH after install. dotnet tool install warns you; add it to your shell profile once."
+  - "Each running MCP server loads its own embedding model, roughly 100 to 200 MB of RAM per instance."
+  - "Jira and Confluence access is read-only and needs an Atlassian API token in an environment variable. rtfm stores the variable's name, never the token."
+  - "The database read guard stops accidental writes. It is not a security boundary. Point `.rtfmdb` files at local or test databases, and at production only on purpose."
+  - "PDFs come out flatter than Word exports, and their tables are extracted as text in reading order, not rebuilt as tables."

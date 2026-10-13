@@ -52,23 +52,3 @@ const [tools, apps] = await Promise.all([getTools(), getApps()]);
   </div>
   <StatusBar />
 </Base>
-
-<script>
-  /* Copy buttons: copy the commands of their block, without the "$" prompt. */
-  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
-    let timer: number | undefined;
-    btn.addEventListener('click', async () => {
-      const block = btn.closest('[data-code]');
-      if (!block || !navigator.clipboard) return;
-      const text = Array.from(block.querySelectorAll('[data-cmd]'), (el) => el.textContent?.trim() ?? '').join('\n');
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch {
-        return;
-      }
-      btn.classList.add('is-copied');
-      clearTimeout(timer);
-      timer = window.setTimeout(() => btn.classList.remove('is-copied'), 1500);
-    });
-  });
-</script>

@@ -21,6 +21,8 @@ Requires Node 22+.
 |---|---|
 | `src/data/products.json` | Copy for every tool and app card and for the hero terminal listing. |
 | `src/lib/products.ts` | Loads the products and looks up versions **at build time**: each tool's latest GitHub release (`v1.13.0` → `v1.13`) and, for apps with an `appStoreId`, the App Store version and price. If a lookup fails, the values in the JSON are used. Set `SKIP_VERSION_FETCH=1` to skip the lookups, or `GITHUB_TOKEN` to avoid rate limits. |
+| `src/content/tools/<id>.yaml` | Copy for each tool page (`/rtfm/`, `/rtfq/`, …): tagline, highlights, steps, notes. The schema and its length limits are in `src/content.config.ts`. Wrap commands and identifiers in `` `backticks` `` to show them as inline code. |
+| `src/pages/[tool].astro` | The tool page template. A new YAML file plus a matching entry in `products.json` makes a new page. |
 | `src/styles/tokens.css` | Design tokens for the dark (default) and light themes. |
 | `src/components/` | Header, hero terminal, tool/app cards, footer, tmux-style status bar. |
 | `public/` | Favicon, touch icon, OG image, app icons. |

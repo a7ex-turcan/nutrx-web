@@ -1,15 +1,16 @@
 ---
 import { site } from '../lib/products';
+const home = Astro.url.pathname === '/';
 ---
 
 <header class="header">
-  <a href="#top" class="wordmark hit">
+  <a href={home ? '#top' : '/'} class="wordmark hit">
     <span class="accent">~/</span><span>nutrx-labs</span><span class="cursor" aria-hidden="true"></span>
   </a>
   <div class="header__right">
     <nav aria-label="Primary" class="nav mono">
-      <a href="#tools" class="hit link-hover">tools/</a>
-      <a href="#apps" class="hit link-hover">apps/</a>
+      <a href="/#tools" class="hit link-hover">tools/</a>
+      <a href="/#apps" class="hit link-hover">apps/</a>
       <a href={site.links.github} class="hit link-hover">github ↗</a>
     </nav>
     <button type="button" class="theme-toggle" aria-label="Switch between light and dark theme" data-theme-toggle>

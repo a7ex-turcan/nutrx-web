@@ -1,5 +1,5 @@
 ---
-import type { Tool, App } from '../lib/products';
+import { site, type Tool, type App } from '../lib/products';
 
 interface Props {
   tools: Tool[];
@@ -12,10 +12,7 @@ const { tools, apps } = Astro.props;
   <div class="hero__copy">
     <p class="prompt mono muted"><span class="accent">$</span> cat about.txt</p>
     <h1>Software that runs <span class="accent-lg">on your side.</span></h1>
-    <p class="lead">
-      Command-line and MCP tools that hand AI agents the manual, the data and each other — plus calm iOS apps with no
-      accounts. Built in Chișinău, mostly open source.
-    </p>
+    <p class="lead">{site.about}</p>
     <div class="hero__actions">
       <a href="#tools" class="btn btn-primary">Browse the tools</a>
       <a href="#apps" class="btn btn-outline">See the apps</a>

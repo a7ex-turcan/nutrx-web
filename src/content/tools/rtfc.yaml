@@ -1,0 +1,42 @@
+tagline: "Let your Claude Code talk to theirs."
+lead: "Ask a colleague's Claude Code a question from your own session and get an answer from their code, not a pasted screenshot. Messages wait in their status bar until they look, and nothing reaches anyone who hasn't accepted you as a contact."
+description: "Send messages from your Claude Code session to a colleague's, over mutual TLS on your LAN or VPN. Mutual contacts, parked messages, opt-in auto-answer."
+highlights:
+  - title: "Contacts, not a channel"
+    body: "You invite, they accept, and you both see the same fingerprint to compare if you want to be sure. No accepted contact, no message. Remove or block someone locally, without their cooperation."
+  - title: "Messages wait for you"
+    body: "Incoming messages park in an inbox and show in your status line until you look. They survive relaunches. If nobody is home you are told straight away, and nothing is queued behind your back unless you ask."
+  - title: "A read-only Claude can answer"
+    body: "Turn on auto-answer for one contact and a fresh, headless Claude answers from a directory you choose, with only Read, Grep and Glob. No shell, no writes, no web. Capped at $0.50 and 3 minutes a run."
+  - title: "Or you decide, in your session"
+    body: "In session mode a message comes into your live Claude Code, which gives you the gist and asks Accept or Decline. Until you answer, the plugin's hooks block every tool, whatever permission mode you run in."
+  - title: "Jira, Confluence and Bitbucket too"
+    body: "Tickets, pages and pull requests that involve you land in the same inbox, scoped to their project: one item each, with what happened and who did it. rtfc only ever reads from a source."
+  - title: "Mutual TLS, even on the LAN"
+    body: "Contacts are pinned by keys, not addresses. Every connection is mutual TLS and the OS trust store is never consulted. Reach people on the office LAN, a VPN or Tailscale."
+steps:
+  - title: "Add the plugin to Claude Code"
+    body: "The release archive is also a Claude Code plugin marketplace. Register the folder you extracted it to, install the plugin, and every session loads it. Allow the firewall prompt the first time the daemon listens."
+    code: |
+      claude plugin marketplace add ~/.local/share/rtfc
+      claude plugin install rtfc@rtfc
+  - title: "Put the inbox in your status line"
+    body: "One command adds rtfc to your Claude Code status line and backs up your settings first. If you already have a status line, it leaves yours alone and tells you how to append rtfc's output."
+    code: |
+      rtfc statusline install
+  - title: "Become contacts"
+    body: "Run `/rtfc:invite` and send the token over any chat. Your colleague runs `/rtfc:accept` with it. Tokens are single-use and expire after 24 hours."
+  - title: "Just ask"
+    body: "\"Send this to sasha: how does your retry policy handle poison messages?\" Claude Code shows you the exact text before it leaves your machine. Replies land in `/rtfc:inbox`, and Claude can open and answer them."
+  - title: "Let your Claude answer while you're out"
+    body: "Give one contact a headless auto-answer scoped to a single project. Their questions get answers from your code while you are at lunch, marked as automatic, and you see each exchange in your inbox."
+    code: |
+      rtfc auto sasha headless --scope ~/src/payments-api
+      rtfc auto sasha off
+notes:
+  - "Early days, MIT licensed. Both people need Claude Code 2.1 or later and a native release for linux-x64, osx-arm64 or win-x64. No .NET needed."
+  - "Messages arrive only while the other person is home: their daemon runs while Claude Code is open, or all day with always-on. Replies to someone who left wait in your outbox for up to a week."
+  - "You need a network path to each other on TCP port 47821: the office LAN, a VPN or Tailscale. A relay for people with no shared network is on the roadmap, not in the box."
+  - "One device per person for now. Multi-device is planned."
+  - "Session mode rests on Claude Code's channels research preview, and Team or Enterprise organisations have to allow channels first."
+  - "Auto-answer runs on your Claude account and costs you usage. Its Grep can read any file in the scope, so pick a scope with nothing you wouldn't show that contact."

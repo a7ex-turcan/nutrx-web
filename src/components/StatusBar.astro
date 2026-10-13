@@ -2,6 +2,7 @@
 import data from '../data/products.json';
 const { site } = data;
 const year = new Date().getFullYear();
+const home = Astro.url.pathname === '/';
 
 // What the tmux prompt knows about: names, one-liners and install commands.
 const items = [
@@ -10,13 +11,13 @@ const items = [
 ];
 ---
 
-<div class="status mono" data-status data-items={JSON.stringify(items)} data-github={site.links.github}>
+<div class="status mono" data-status data-items={JSON.stringify(items)} data-github={site.links.github} data-about={site.about}>
   <div class="container status__inner">
     <div class="status__line" data-line>
       <nav aria-label="Sections" class="status__nav">
-        <a href="#top" class="hit status__session">[nutrx-labs]</a>
-        <a href="#tools" class="hit win is-active" data-win="tools">0:tools<span class="win__mark">*</span></a>
-        <a href="#apps" class="hit win" data-win="apps">1:apps<span class="win__mark">*</span></a>
+        <a href={home ? '#top' : '/'} class="hit status__session">[nutrx-labs]</a>
+        <a href="/#tools" class="hit win is-active" data-win="tools">0:tools<span class="win__mark">*</span></a>
+        <a href="/#apps" class="hit win" data-win="apps">1:apps<span class="win__mark">*</span></a>
         <a href={site.links.github} class="hit win">2:github</a>
       </nav>
       <span class="hit">© {year} nutrx labs</span>
@@ -186,7 +187,8 @@ const items = [
 
   function go(target: string | HTMLElement, flash = false) {
     const el = typeof target === 'string' ? document.getElementById(target) : target;
-    if (!el) return;
+    // Not on this page (a tool page): go to it on the homepage.
+    if (!el) return void (typeof target === 'string' && location.assign(`/#${target}`));
     el.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: flash ? 'center' : 'start' });
     if (flash) {
       el.classList.add('is-flash');
@@ -199,7 +201,7 @@ const items = [
 
   const commands: Record<string, (args: string[]) => Out> = {
     help: () =>
-      'help · ls · cd <dir> · cat about.txt · open <name> · copy <tool> · theme [light|dark] · whoami · date · cowsay · exit — ctrl+b 0/1/2 switches windows',
+      'help · ls · cd <dir> · cat about.txt · open <name> · man <tool> · copy <tool> · theme [light|dark] · whoami · date · cowsay · exit — ctrl+b 0/1/2 switches windows',
     ls: ([dir = '.']) => {
       if (['.', '~', './', '~/nutrx-labs'].includes(dir)) return 'about.txt  tools/  apps/';
       if (dir.startsWith('-')) return 'about.txt  tools/  apps/  (nothing hidden here. mostly.)';
@@ -209,7 +211,8 @@ const items = [
     },
     cd: ([dir = '~']) => {
       if (['~', '/', '..', '.', '~/nutrx-labs', '-'].includes(dir)) {
-        go(document.body);
+        if (location.pathname !== '/') location.assign('/');
+        else go(document.body);
         return '~/nutrx-labs';
       }
       const d = dirs[dir];
@@ -222,7 +225,7 @@ const items = [
     },
     cat: ([file]) => {
       if (!file) return 'usage: cat about.txt';
-      if (file === 'about.txt') return document.querySelector('.lead')?.textContent?.trim().replace(/\s+/g, ' ');
+      if (file === 'about.txt') return bar.dataset.about;
       if (dirs[file]) return `cat: ${file}: Is a directory`;
       return `cat: ${file}: No such file or directory`;
     },
@@ -263,7 +266,13 @@ const items = [
     rm: () => 'rm: permission denied. everything here runs on your side, just not like that.',
     vim: () => "this is tmux, not vim. but :q works, if that's what you're after.",
     git: () => 'this page is open source: github.com/a7ex-turcan/nutrx-web',
-    man: ([name]) => (name ? commands.open([name]) : 'what manual page do you want? (rtfm)'),
+    man: ([name]) => {
+      if (!name) return 'what manual page do you want? (rtfm)';
+      const item = find(name);
+      if (item?.kind !== 'tool') return `No manual entry for ${name}`;
+      location.assign(`/${item.id}/`);
+      return `opening the manual for ${item.id}…`;
+    },
     rtfm: () => 'read the fine manual: type help',
     rtfq: () => 'SELECT * FROM secrets; → denied. writes wait for a human approval.',
     rtfc: () => 'no contacts online. messages park in the status bar. like this one.',
