@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8">
+<!-- Per-tool OG image (1200x630). Filled from the query string by scripts/og/render.mjs. -->
+<style>
+@font-face{font-family:H;font-weight:600;src:url(../../node_modules/@fontsource/hanken-grotesk/files/hanken-grotesk-latin-600-normal.woff2)}
+@font-face{font-family:M;font-weight:400;src:url(../../node_modules/@fontsource/martian-mono/files/martian-mono-latin-400-normal.woff2)}
+@font-face{font-family:M;font-weight:600;src:url(../../node_modules/@fontsource/martian-mono/files/martian-mono-latin-600-normal.woff2)}
+html,body{margin:0;width:1200px;height:630px;background:#0E1013;color:#ECEAE4;overflow:hidden}
+.wrap{box-sizing:border-box;height:576px;padding:60px 80px 56px;display:flex;flex-direction:column;justify-content:space-between}
+.wm{font:600 26px M;letter-spacing:-.02em;display:flex;align-items:center;color:#9CA0A8}.wm b{color:#FFB547;font-weight:600}.wm span{color:#ECEAE4}.wm i{display:inline-block;width:15px;height:30px;background:#FFB547;margin-left:10px}
+.id{display:flex;align-items:baseline;gap:24px;flex-wrap:wrap}
+.name{font:600 104px/1 M;letter-spacing:-.04em;color:#FFB547}.lab .name{color:#D6D4CE}
+.exp{font:400 24px M;color:#9CA0A8}
+.pill{align-self:center;font:400 20px M;color:#FFB547;border:2px dashed #FFB547;border-radius:999px;padding:6px 16px;display:none}.lab .pill{display:inline-block}
+h1{margin:0;font:600 60px/1.08 H;letter-spacing:-.03em;max-width:1040px;text-wrap:balance}
+.bar{height:54px;background:#FFB547;color:#16130C;font:600 20px M;display:flex;align-items:center;justify-content:space-between;padding:0 80px}
+.bar em{font-style:normal;font-weight:400}
+</style>
+<div class="wrap" id="wrap">
+  <div class="wm"><b>~/</b>nutrx-labs/tools/<span id="crumb"></span><i></i></div>
+  <div>
+    <div class="id"><span class="name" id="name"></span><span class="exp" id="exp"></span><span class="pill">in the lab</span></div>
+  </div>
+  <h1 id="tagline"></h1>
+</div>
+<div class="bar"><span>[nutrx-labs] 0:tools* 1:apps 2:github</span><em id="url"></em></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const set = (id, v) => (document.getElementById(id).textContent = v);
+  set('crumb', q.get('id'));
+  set('name', q.get('name'));
+  set('exp', q.get('exp'));
+  set('tagline', q.get('tagline'));
+  set('url', `nutrx-labs.com/${q.get('id')}`);
+  if (q.get('lab')) document.getElementById('wrap').classList.add('lab');
+</script>

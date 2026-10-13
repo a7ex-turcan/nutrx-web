@@ -32,7 +32,7 @@ const pad = (n: number) => String(n + 1).padStart(2, '0');
 const parts = (text: string) => text.split('`').map((t, i) => ({ t, code: i % 2 === 1 }));
 ---
 
-<Base title={`${tool.name}: ${tool.expansion} · nutrx labs`} description={copy.description}>
+<Base title={`${tool.name}: ${tool.expansion} · nutrx labs`} description={copy.description} image={`/og/${tool.id}.png`}>
   <div class="container">
     <Header />
     <main>

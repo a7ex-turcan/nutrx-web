@@ -19,14 +19,16 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  image?: string; // path of a 1200x630 social preview under public/
 }
 
 const {
   title = 'nutrx labs — tools for AI developers, calm iOS apps',
+  image = '/og.png',
   description = 'Self-hosted rtf* tools for working alongside AI agents, and privacy-first iOS apps with no accounts. Built in Chișinău, Moldova.',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = new URL('/og.png', Astro.site).href;
+const ogImage = new URL(image, Astro.site).href;
 ---
 
 <!doctype html>
