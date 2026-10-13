@@ -124,14 +124,65 @@ const items = [
   }
 
   /* Like tmux's display-message: replaces the status line for a moment. */
-  function say(text: string) {
-    msg.textContent = text;
-    live.textContent = text;
+  /* A command prints a line, or ASCII art plus the words a screen reader should announce. */
+  type Out = string | { art: string; text: string } | void;
+  const plain = (out: Out) => (typeof out === 'string' ? out : (out?.text ?? ''));
+
+  function say(out: Out) {
+    if (!out) return close();
+    const art = typeof out === 'object';
+    msg.textContent = art ? out.art : out;
+    msg.classList.toggle('is-art', art);
+    live.textContent = plain(out);
     setMode('msg');
     if (returnFocus) returnFocus.focus({ preventScroll: true });
     else (document.activeElement as HTMLElement | null)?.blur();
-    msgTimer = window.setTimeout(close, Math.min(10000, 3000 + text.length * 45));
+    msgTimer = window.setTimeout(close, Math.min(art ? 12000 : 10000, 3000 + plain(out).length * 45));
   }
+
+  /* cowsay, the classic. Wraps at 28 columns so the cow fits on a phone. */
+  function cow(text: string, think = false) {
+    const words = text.split(/\s+/).filter(Boolean).flatMap((w) => w.match(/.{1,28}/g) ?? []);
+    const lines: string[] = [];
+    for (const w of words.length ? words : ['moo']) {
+      const last = lines[lines.length - 1];
+      if (last !== undefined && last.length + 1 + w.length <= 28) lines[lines.length - 1] = `${last} ${w}`;
+      else lines.push(w);
+    }
+    const width = Math.max(...lines.map((l) => l.length));
+    const edge = (i: number) => {
+      if (think) return ['(', ')'];
+      if (lines.length === 1) return ['<', '>'];
+      if (i === 0) return ['/', '\\'];
+      if (i === lines.length - 1) return ['\\', '/'];
+      return ['|', '|'];
+    };
+    const t = think ? 'o' : '\\';
+    const art = [
+      ` ${'_'.repeat(width + 2)}`,
+      ...lines.map((l, i) => `${edge(i)[0]} ${l.padEnd(width)} ${edge(i)[1]}`),
+      ` ${'-'.repeat(width + 2)}`,
+      `        ${t}   ^__^`,
+      `         ${t}  (oo)\\_______`,
+      `            (__)\\       )\\/\\`,
+      `                ||----w |`,
+      `                ||     ||`,
+    ].join('\n');
+    return { art, text: `a cow ${think ? 'thinks' : 'says'}: ${lines.join(' ')}` };
+  }
+
+  const fortunes = [
+    'Read the fine manual.',
+    'Software that runs on your side.',
+    'No accounts. No servers. No ads.',
+    'Writes wait for a human approval.',
+    'It works on my machine. That is the whole point.',
+    'Caffeine: over. Water: under.',
+    'Self-host your fonts.',
+    'Nothing to flag? lgtfm.',
+    'The best server is the one you never had to run.',
+  ];
+  const fortune = () => fortunes[Math.floor(Math.random() * fortunes.length)];
 
   function go(target: string | HTMLElement, flash = false) {
     const el = typeof target === 'string' ? document.getElementById(target) : target;
@@ -146,9 +197,9 @@ const items = [
   const dirs: Record<string, string> = { tools: 'tools', 'tools/': 'tools', apps: 'apps', 'apps/': 'apps' };
   const ids = () => items.map((i) => i.id);
 
-  const commands: Record<string, (args: string[]) => string | void> = {
+  const commands: Record<string, (args: string[]) => Out> = {
     help: () =>
-      'help · ls · cd <dir> · cat about.txt · open <name> · copy <tool> · theme [light|dark] · whoami · date · exit — ctrl+b 0/1/2 switches windows',
+      'help · ls · cd <dir> · cat about.txt · open <name> · copy <tool> · theme [light|dark] · whoami · date · cowsay · exit — ctrl+b 0/1/2 switches windows',
     ls: ([dir = '.']) => {
       if (['.', '~', './', '~/nutrx-labs'].includes(dir)) return 'about.txt  tools/  apps/';
       if (dir.startsWith('-')) return 'about.txt  tools/  apps/  (nothing hidden here. mostly.)';
@@ -220,24 +271,35 @@ const items = [
     lgtfm: () => 'lgtfm ✓',
     coffee: () => 'Caffeine 280 / 200 mg · over. nutrx suggests water.',
     hello: () => 'hi. type help to look around.',
+    fortune: () => fortune(),
+    cowsay: (args) => cow(args.join(' ') || fortune()),
+    cowthink: (args) => cow(args.join(' ') || fortune(), true),
   };
   const aliases: Record<string, string> = {
     '?': 'help', 'list-commands': 'help', l: 'ls', ll: 'ls', vi: 'vim', nvim: 'vim', nano: 'vim', emacs: 'vim',
-    caffeine: 'coffee', hi: 'hello', hey: 'hello', 'display-message': 'echo', xdg: 'open',
+    caffeine: 'coffee', hi: 'hello', hey: 'hello', 'display-message': 'echo', xdg: 'open', moo: 'cowsay',
   };
   const quit = new Set(['exit', 'quit', 'q', ':q', 'q!', ':q!', ':wq', 'logout', 'detach', 'clear']);
 
+  function exec(stage: string, piped: string[]): Out | null {
+    const [first = '', ...args] = stage.trim().split(/\s+/);
+    const name = first.toLowerCase();
+    if (quit.has(name)) return null;
+    const cmd = commands[aliases[name] ?? name];
+    return cmd ? cmd([...args, ...piped]) : `unknown command: ${first} (try help)`;
+  }
+
+  /* Runs a command line. "a | b" feeds a's output to b as arguments: fortune | cowsay. */
   function run(raw: string) {
     const text = raw.trim();
     if (!text) return close();
     if (history[history.length - 1] !== text) history.push(text);
-    const [first, ...args] = text.split(/\s+/);
-    const name = first.toLowerCase();
-    if (quit.has(name)) return close();
-    const cmd = commands[aliases[name] ?? name];
-    const out = cmd ? cmd(args) : `unknown command: ${first} (try help)`;
-    if (out) say(out);
-    else close();
+    let out: Out | null = undefined;
+    for (const stage of text.split('|')) {
+      out = exec(stage, out ? plain(out).split(/\s+/) : []);
+      if (out === null) return close();
+    }
+    say(out);
   }
 
   /* Tab completes a command, or its argument when there's only one match. */
@@ -400,6 +462,13 @@ const items = [
   .status__msg {
     padding: 10px 0;
     line-height: 1.5;
+  }
+  .status__msg.is-art:not([hidden]) {
+    display: block;
+    padding: 14px 0;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.3;
   }
   @media (pointer: coarse) {
     /* Keep iOS from zooming in on focus. */
