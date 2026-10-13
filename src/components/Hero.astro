@@ -1,0 +1,189 @@
+---
+import type { Tool, App } from '../lib/products';
+
+interface Props {
+  tools: Tool[];
+  apps: App[];
+}
+const { tools, apps } = Astro.props;
+---
+
+<section class="hero">
+  <div class="hero__copy">
+    <p class="prompt mono muted"><span class="accent">$</span> cat about.txt</p>
+    <h1>Software that runs <span class="accent-lg">on your side.</span></h1>
+    <p class="lead">
+      Command-line and MCP tools that hand AI agents the manual, the data and each other — plus calm iOS apps with no
+      accounts. Built in Chișinău, mostly open source.
+    </p>
+    <div class="hero__actions">
+      <a href="#tools" class="btn btn-primary">Browse the tools</a>
+      <a href="#apps" class="btn btn-outline">See the apps</a>
+    </div>
+  </div>
+
+  <div class="term mono">
+    <div class="term__bar"><span>alex@nutrx-labs: ~</span><span>zsh</span></div>
+    <div class="term__body" data-term>
+      <p class="term__cmd"><span class="accent">$</span> <span data-type>ls ~/nutrx-labs/*</span></p>
+      <div class="term__out">
+        <p class="term__dir muted">tools/</p>
+        {
+          tools.map((t) => (
+            <a href={`#${t.id}`} class="row">
+              <span class:list={['row__name', t.status === 'lab' ? 'row__name--lab' : 'accent']}>{t.name}</span>
+              <span class="row__sum muted">{t.listing.summary}</span>
+              <span class={t.status === 'lab' ? 'accent' : 'muted'}>{t.listing.right}</span>
+            </a>
+          ))
+        }
+        <p class="term__dir term__dir--apps muted">apps/</p>
+        {
+          apps.map((a) => (
+            <a href={`#${a.id}`} class="row">
+              <span class="row__name">{a.id}</span>
+              <span class="row__sum muted">{a.listing.summary}</span>
+              <span class="muted">{a.listing.right}</span>
+            </a>
+          ))
+        }
+        <p class="term__end"><span class="accent">$</span><span class="term__cursor" aria-hidden="true"></span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  /* One-time typing animation for the hero command. Runs before paint so the
+     listing never flashes; skipped under reduced motion. */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var body = document.querySelector('[data-term]');
+    var cmd = body && body.querySelector('[data-type]');
+    if (!cmd) return;
+    var text = cmd.textContent;
+    cmd.textContent = '';
+    body.classList.add('is-typing');
+    var i = 0;
+    setTimeout(function step() {
+      cmd.textContent = text.slice(0, ++i);
+      if (i < text.length) return setTimeout(step, 38 + Math.random() * 40);
+      setTimeout(function () { body.classList.remove('is-typing'); }, 180);
+    }, 450);
+  })();
+</script>
+
+<style>
+  .hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 48px 64px;
+    padding: clamp(56px, 7vw, 112px) 0 clamp(64px, 7vw, 112px);
+  }
+  .hero__copy {
+    flex: 1 1 480px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .prompt { font-size: 13px; }
+  h1 {
+    font-weight: 600;
+    font-size: clamp(44px, 5.8vw, 88px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .lead {
+    max-width: 540px;
+    font-size: clamp(18px, 1.4vw, 20px);
+    line-height: 1.55;
+    color: var(--fg-2);
+    text-wrap: pretty;
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+
+  .term {
+    flex: 1 1 440px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .term__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .term__body {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 20px 20px;
+  }
+  .term__cmd { margin-bottom: 12px; }
+  .term__out {
+    display: flex;
+    flex-direction: column;
+  }
+  .term__dir { margin-bottom: 2px; }
+  .term__dir--apps { margin-top: 10px; }
+  .term__end {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .term__cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--fg);
+  }
+
+  /* While typing: hide the output and put the cursor after the command. */
+  .term__body:global(.is-typing) .term__out { visibility: hidden; }
+  .term__body:global(.is-typing) .term__cmd::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    margin-left: 2px;
+    vertical-align: -3px;
+    background: var(--fg);
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+    padding: 6px 8px 6px 24px;
+    margin: 0 -8px;
+    border-radius: 6px;
+    color: var(--fg);
+    transition: background-color 0.12s ease;
+  }
+  .row:hover { background: var(--chip); }
+  .row__name {
+    flex: none;
+    width: 80px;
+  }
+  .row__name--lab { color: var(--fg-2); }
+  .row__sum {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+</style>

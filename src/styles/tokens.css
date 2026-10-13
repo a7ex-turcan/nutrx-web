@@ -1,0 +1,108 @@
+/*
+  nutrx labs — design tokens
+  Dark is the default. Light applies when the visitor's system prefers light
+  (unless they picked dark with the toggle), or when <html data-theme="light">.
+*/
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #0E1013;            /* page background */
+  --surface: #15181D;       /* cards, terminal panel */
+  --code: #0E1013;          /* command blocks */
+  --chip: #1D2127;          /* interface tags */
+  --ph: #1B1F25;            /* image placeholders */
+
+  /* Lines */
+  --line: #262A31;          /* card borders, dividers */
+  --line-2: #3A3E46;        /* stronger borders: outline buttons, badges, dashed "lab" card */
+
+  /* Text */
+  --fg: #ECEAE4;            /* primary text */
+  --fg-2: #D6D4CE;          /* body copy */
+  --muted: #9CA0A8;         /* secondary text, comments */
+
+  /* Accent (amber) */
+  --accent: #FFB547;        /* accent TEXT at any size */
+  --accent-lg: #FFB547;     /* accent text at 24px+ only (headline highlight, tool names) */
+  --accent-fill: #FFB547;   /* fills: primary button, cursor, status bar */
+  --accent-ink: #16130C;    /* text on --accent-fill */
+
+  /* App preview "screens" (light in both themes) */
+  --screen: #F2F1EC;
+  --screen-fg: #15171B;
+  --screen-muted: #555963;
+  --screen-track: #E2E1DB;
+
+  /* Status colors inside the nutrx preview (same in both themes) */
+  --status-ok: #1E6B47;
+  --status-over: #B23C0B;
+  --status-over-bar: #E8913A;
+
+  /* Type */
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Shape */
+  --radius-card: 16px;
+  --radius-app-card: 16px;
+  --radius-panel: 14px;
+  --radius-screen: 12px;
+  --radius-code: 10px;
+  --radius-button: 10px;
+  --radius-chip: 6px;
+  --radius-pill: 999px;
+
+  /* Layout */
+  --container: 1328px;                       /* max width including side padding */
+  --gutter: clamp(20px, 5vw, 64px);          /* side padding */
+  --section-gap: clamp(72px, 9vw, 128px);    /* space after each section */
+  --target: 44px;                            /* minimum hit target */
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #F6F5F1;
+    --surface: #FFFFFF;
+    --code: #F4F3EF;
+    --chip: #F1EFEA;
+    --ph: #F1EFEA;
+    --line: #E3E1DA;
+    --line-2: #C9C7BF;
+    --fg: #16171A;
+    --fg-2: #2E3036;
+    --muted: #5E616A;
+    --accent: #8F5400;
+    --accent-lg: #B86E00;
+    --accent-fill: #FFB547;
+    --accent-ink: #16130C;
+    --screen: #F6F5F1;
+    --screen-fg: #16171A;
+    --screen-muted: #5E616A;
+    --screen-track: #E4E2DB;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #F6F5F1;
+  --surface: #FFFFFF;
+  --code: #F4F3EF;
+  --chip: #F1EFEA;
+  --ph: #F1EFEA;
+  --line: #E3E1DA;
+  --line-2: #C9C7BF;
+  --fg: #16171A;
+  --fg-2: #2E3036;
+  --muted: #5E616A;
+  --accent: #8F5400;
+  --accent-lg: #B86E00;
+  --accent-fill: #FFB547;
+  --accent-ink: #16130C;
+  --screen: #F6F5F1;
+  --screen-fg: #16171A;
+  --screen-muted: #5E616A;
+  --screen-track: #E4E2DB;
+}

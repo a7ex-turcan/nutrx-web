@@ -1,0 +1,45 @@
+---
+import { site } from '../lib/products';
+const email: string | null = site.links.email;
+---
+
+<footer class="footer">
+  <div class="footer__about">
+    <p class="wordmark mono"><span class="accent">~/</span>nutrx-labs</p>
+    <p class="muted">Built by {site.owner} in {site.location}. Most of it is open source.</p>
+  </div>
+  <nav aria-label="Elsewhere" class="footer__nav mono">
+    <a href={site.links.github} class="hit link-hover">github ↗</a>
+    <a href={site.links.linkedin} class="hit link-hover">linkedin ↗</a>
+    {email && <a href={`mailto:${email}`} class="hit link-hover">email</a>}
+  </nav>
+</footer>
+
+<style>
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px 48px;
+    padding: 40px 0 36px;
+    border-top: 1px solid var(--line);
+  }
+  .footer__about {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 520px;
+  }
+  .wordmark {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+    font-size: 13px;
+  }
+</style>

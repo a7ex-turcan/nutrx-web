@@ -1,0 +1,83 @@
+---
+import { site } from '../lib/products';
+const year = new Date().getFullYear();
+---
+
+<div class="status mono">
+  <div class="container status__inner">
+    <nav aria-label="Sections" class="status__nav">
+      <a href="#top" class="hit status__session">[nutrx-labs]</a>
+      <a href="#tools" class="hit win is-active" data-win="tools">0:tools<span class="win__mark">*</span></a>
+      <a href="#apps" class="hit win" data-win="apps">1:apps<span class="win__mark">*</span></a>
+      <a href={site.links.github} class="hit win">2:github</a>
+    </nav>
+    <span class="hit">© {year} nutrx labs</span>
+  </div>
+</div>
+
+<script>
+  /* The "*" marks the section in view, like tmux's active window. */
+  const wins = document.querySelectorAll<HTMLElement>('[data-win]');
+  const sections = ['tools', 'apps'];
+  let ticking = false;
+
+  function spy() {
+    let active = 'tools';
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) active = id;
+    }
+    wins.forEach((a) => {
+      const on = a.dataset.win === active;
+      a.classList.toggle('is-active', on);
+      if (on) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    });
+    ticking = false;
+  }
+
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(spy);
+      }
+    },
+    { passive: true },
+  );
+  window.addEventListener('resize', spy, { passive: true });
+  spy();
+</script>
+
+<style>
+  .status {
+    background: var(--accent-fill);
+    color: var(--accent-ink);
+    font-size: 12.5px;
+  }
+  .status__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0 24px;
+  }
+  .status__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 4px;
+  }
+  .status a { color: var(--accent-ink); }
+  .status a:focus-visible { outline-color: var(--accent-ink); }
+  .status__session {
+    padding-right: 12px;
+    font-weight: 600;
+  }
+  .win { padding: 0 8px; }
+  .win:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .win__mark { visibility: hidden; }
+  .win.is-active { font-weight: 600; }
+  .win.is-active .win__mark { visibility: visible; }
+</style>

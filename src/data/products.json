@@ -1,0 +1,187 @@
+{
+  "_note": "Content for the product cards and the hero terminal listing. Tool versions are refreshed from each repo's latest GitHub release at build time (src/lib/products.ts); the values here are the fallback.",
+  "tools": [
+    {
+      "id": "rtfm",
+      "name": "rtfm",
+      "expansion": "Retrieval Tool For Manuals",
+      "status": "stable",
+      "version": "1.13",
+      "license": "MIT",
+      "badge": "v1.13 · MIT",
+      "interfaces": [
+        "cli",
+        "mcp server"
+      ],
+      "description": "Local documentation search for AI agents. Indexes Confluence exports, Word, PDF, Markdown, spreadsheets, diagrams and database schemas into OpenSearch on your machine, then serves hybrid search over MCP.",
+      "comment": "make AI agents read the manual",
+      "commands": [
+        "dotnet tool install -g Rtfm.Cli",
+        "dotnet tool install -g Rtfm.Mcp",
+        "rtfm init"
+      ],
+      "listing": {
+        "summary": "Retrieval Tool For Manuals",
+        "right": "v1.13"
+      },
+      "links": [
+        {
+          "label": "github.com/a7ex-turcan/rtfm",
+          "href": "https://github.com/a7ex-turcan/rtfm"
+        }
+      ]
+    },
+    {
+      "id": "rtfq",
+      "name": "rtfq",
+      "expansion": "Remote Tool For Queries",
+      "status": "early",
+      "version": "0.1",
+      "license": "MIT",
+      "badge": "early · v0.1 · MIT",
+      "interfaces": [
+        "server",
+        "cli",
+        "mcp server"
+      ],
+      "description": "One self-hosted binary between your agents and PostgreSQL, SQL Server, MongoDB or allow-listed HTTP APIs. Callers see only what they're granted, writes wait for an unlock and a human approval, and every request is audited.",
+      "comment": "read by default, write on a leash",
+      "commands": [
+        "rtfq serve",
+        "rtfq approvals"
+      ],
+      "listing": {
+        "summary": "Remote Tool For Queries",
+        "right": "v0.1"
+      },
+      "links": [
+        {
+          "label": "github.com/a7ex-turcan/rtfq",
+          "href": "https://github.com/a7ex-turcan/rtfq"
+        },
+        {
+          "label": "releases",
+          "href": "https://github.com/a7ex-turcan/rtfq/releases"
+        }
+      ]
+    },
+    {
+      "id": "rtfc",
+      "name": "rtfc",
+      "expansion": "Relay Tool For Contacts",
+      "status": "early",
+      "version": "0.3",
+      "license": "MIT",
+      "badge": "early · v0.3 · MIT",
+      "interfaces": [
+        "claude code plugin",
+        "daemon",
+        "cli"
+      ],
+      "description": "Claude Code to Claude Code messaging between people. Contacts are mutual, messages park in your status bar until you read them, auto-answer is opt-in per contact, and every connection is mutual TLS on your LAN.",
+      "comment": "stop copy-pasting between terminals",
+      "commands": [
+        "rtfc init"
+      ],
+      "listing": {
+        "summary": "Relay Tool For Contacts",
+        "right": "v0.3"
+      },
+      "links": [
+        {
+          "label": "github.com/a7ex-turcan/rtfc",
+          "href": "https://github.com/a7ex-turcan/rtfc"
+        },
+        {
+          "label": "releases",
+          "href": "https://github.com/a7ex-turcan/rtfc/releases"
+        }
+      ]
+    },
+    {
+      "id": "rtfd",
+      "name": "rtfd",
+      "expansion": "Read The Fine Diff",
+      "status": "lab",
+      "version": null,
+      "license": "MIT",
+      "badge": "in the lab · MIT",
+      "interfaces": [
+        "watcher",
+        "any agent"
+      ],
+      "description": "A pull-request review watcher for any AI agent. It hands each PR to Claude Code, Copilot CLI or whichever agent you configure, runs it read-only, and posts one review with inline comments back to the PR.",
+      "comment_lines": [
+        "design settled, build in progress",
+        "nothing to flag? it posts: lgtfm"
+      ],
+      "commands": [],
+      "listing": {
+        "summary": "Read The Fine Diff",
+        "right": "lab"
+      },
+      "links": [
+        {
+          "label": "github.com/a7ex-turcan/rtfd",
+          "href": "https://github.com/a7ex-turcan/rtfd"
+        }
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "id": "nutrx",
+      "name": "nutrx",
+      "platforms": "iPhone · Apple Watch · widgets",
+      "status": "live",
+      "badge": "v1.10 · free",
+      "description": "A privacy-first nutrient tracker. Define any vitamin, mineral or supplement — or just caffeine and water — set daily targets, and log with a tap from your phone, your wrist or a widget. No accounts, no servers, no ads.",
+      "listing": {
+        "summary": "nutrients · iPhone + Watch",
+        "right": "live"
+      },
+      "icon": "/icons/nutrx.png",
+      "links": [
+        {
+          "label": "Visit nutrx →",
+          "href": "https://nutrx.nutrx-labs.com",
+          "kind": "primary"
+        },
+        {
+          "label": "App Store ↗",
+          "href": "https://apps.apple.com/us/app/nutrx/id6760843478",
+          "kind": "link"
+        }
+      ]
+    },
+    {
+      "id": "softfill",
+      "name": "Softfill",
+      "platforms": "iPad first · iPhone on the way",
+      "status": "soon",
+      "badge": "coming soon",
+      "description": "Calm coloring. Tap an area and watch the color ripple in, or pick up a brush that stays inside the lines. Hand-picked palettes for every drawing, a time-lapse of every finished piece, and a grown-up check before anything costs money.",
+      "listing": {
+        "summary": "coloring · iPad",
+        "right": "soon"
+      },
+      "icon": "/icons/softfill.svg",
+      "links": [
+        {
+          "label": "Visit Softfill →",
+          "href": "https://softfill.nutrx-labs.com",
+          "kind": "primary"
+        }
+      ]
+    }
+  ],
+  "site": {
+    "owner": "Alex Țurcan",
+    "location": "Chișinău, Moldova",
+    "links": {
+      "github": "https://github.com/a7ex-turcan",
+      "linkedin": "https://www.linkedin.com/in/alex-%C8%9Burcan-b678b0139/",
+      "email": null
+    }
+  }
+}

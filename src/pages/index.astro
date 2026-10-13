@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import ToolCard from '../components/ToolCard.astro';
+import AppCard from '../components/AppCard.astro';
+import Footer from '../components/Footer.astro';
+import StatusBar from '../components/StatusBar.astro';
+import { getTools, apps } from '../lib/products';
+
+const tools = await getTools();
+---
+
+<Base>
+  <div class="container">
+    <Header />
+    <main>
+      <Hero tools={tools} apps={apps} />
+
+      <section id="tools" class="section">
+        <div class="section-head">
+          <div class="section-head__title">
+            <p class="section-head__label">// tools</p>
+            <h2>The rtf* family</h2>
+          </div>
+          <p class="section-head__intro">
+            Self-hosted .NET tools for working alongside AI agents, wired in through MCP and Claude Code. Each name is
+            the polite reading of an impolite acronym.
+          </p>
+        </div>
+        <div class="grid">
+          {tools.map((tool) => <ToolCard tool={tool} />)}
+        </div>
+      </section>
+
+      <section id="apps" class="section">
+        <div class="section-head">
+          <div class="section-head__title">
+            <p class="section-head__label">// apps</p>
+            <h2>Two iOS apps. No accounts.</h2>
+          </div>
+          <p class="section-head__intro">
+            Both keep your data on your device and in your own iCloud. Each one has its own site with the full story.
+          </p>
+        </div>
+        <div class="grid">
+          {apps.map((app) => <AppCard app={app} />)}
+        </div>
+      </section>
+    </main>
+    <Footer />
+  </div>
+  <StatusBar />
+</Base>
+
+<script>
+  /* Copy buttons: copy the commands of their block, without the "$" prompt. */
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    let timer: number | undefined;
+    btn.addEventListener('click', async () => {
+      const block = btn.closest('[data-code]');
+      if (!block || !navigator.clipboard) return;
+      const text = Array.from(block.querySelectorAll('[data-cmd]'), (el) => el.textContent?.trim() ?? '').join('\n');
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        return;
+      }
+      btn.classList.add('is-copied');
+      clearTimeout(timer);
+      timer = window.setTimeout(() => btn.classList.remove('is-copied'), 1500);
+    });
+  });
+</script>
