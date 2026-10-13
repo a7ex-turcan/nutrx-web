@@ -22,18 +22,10 @@ import { site } from '../lib/products';
 </header>
 
 <script>
+  import { toggleTheme } from '../lib/theme';
+
   /* Theme toggle: system preference by default, the visitor's choice wins and is remembered. */
-  const root = document.documentElement;
-  document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
-    const current =
-      root.getAttribute('data-theme') ||
-      (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-    const next = current === 'light' ? 'dark' : 'light';
-    root.setAttribute('data-theme', next);
-    try {
-      localStorage.setItem('nl-theme', next);
-    } catch {}
-  });
+  document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => toggleTheme());
 </script>
 
 <style>

@@ -1,21 +1,50 @@
 ---
-import { site } from '../lib/products';
+import data from '../data/products.json';
+const { site } = data;
 const year = new Date().getFullYear();
+
+// What the tmux prompt knows about: names, one-liners and install commands.
+const items = [
+  ...data.tools.map((t) => ({ id: t.id, kind: 'tool', about: t.expansion, commands: t.commands })),
+  ...data.apps.map((a) => ({ id: a.id, kind: 'app', about: `${a.name} — ${a.listing.summary}`, commands: [] })),
+];
 ---
 
-<div class="status mono">
+<div class="status mono" data-status data-items={JSON.stringify(items)} data-github={site.links.github}>
   <div class="container status__inner">
-    <nav aria-label="Sections" class="status__nav">
-      <a href="#top" class="hit status__session">[nutrx-labs]</a>
-      <a href="#tools" class="hit win is-active" data-win="tools">0:tools<span class="win__mark">*</span></a>
-      <a href="#apps" class="hit win" data-win="apps">1:apps<span class="win__mark">*</span></a>
-      <a href={site.links.github} class="hit win">2:github</a>
-    </nav>
-    <span class="hit">© {year} nutrx labs</span>
+    <div class="status__line" data-line>
+      <nav aria-label="Sections" class="status__nav">
+        <a href="#top" class="hit status__session">[nutrx-labs]</a>
+        <a href="#tools" class="hit win is-active" data-win="tools">0:tools<span class="win__mark">*</span></a>
+        <a href="#apps" class="hit win" data-win="apps">1:apps<span class="win__mark">*</span></a>
+        <a href={site.links.github} class="hit win">2:github</a>
+      </nav>
+      <span class="hit">© {year} nutrx labs</span>
+    </div>
+
+    <form class="status__prompt hit" data-prompt hidden>
+      <label for="tmux-cmd" class="status__colon">:</label>
+      <input
+        id="tmux-cmd"
+        class="status__input"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        enterkeyhint="go"
+        aria-label="tmux command"
+      />
+    </form>
+
+    <p class="status__msg hit" data-msg aria-hidden="true" hidden></p>
   </div>
+  <p class="sr-only" role="status" data-live></p>
 </div>
 
 <script>
+  import { setTheme, toggleTheme } from '../lib/theme';
+
   /* The "*" marks the section in view, like tmux's active window. */
   const wins = document.querySelectorAll<HTMLElement>('[data-win]');
   const sections = ['tools', 'apps'];
@@ -48,6 +77,262 @@ const year = new Date().getFullYear();
   );
   window.addEventListener('resize', spy, { passive: true });
   spy();
+
+  /* Easter egg: the status bar is a tmux command prompt.
+     Open it with ":", "C-b :" or a click on the bar; C-b 0/1/2 switch windows. */
+  type Item = { id: string; kind: 'tool' | 'app'; about: string; commands: string[] };
+
+  const bar = document.querySelector<HTMLElement>('[data-status]')!;
+  const line = bar.querySelector<HTMLElement>('[data-line]')!;
+  const form = bar.querySelector<HTMLFormElement>('[data-prompt]')!;
+  const input = form.querySelector('input')!;
+  const msg = bar.querySelector<HTMLElement>('[data-msg]')!;
+  const live = bar.querySelector<HTMLElement>('[data-live]')!;
+  const items: Item[] = JSON.parse(bar.dataset.items || '[]');
+  const github = bar.dataset.github!;
+  const find = (id = '') => items.find((i) => i.id === id.toLowerCase());
+  const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  type Mode = 'line' | 'prompt' | 'msg';
+  let msgTimer: number | undefined;
+  let returnFocus: HTMLElement | null = null;
+  const history: string[] = [];
+  let historyAt = 0;
+
+  function setMode(mode: Mode) {
+    clearTimeout(msgTimer);
+    line.hidden = mode !== 'line';
+    form.hidden = mode !== 'prompt';
+    msg.hidden = mode !== 'msg';
+    bar.classList.toggle('is-open', mode !== 'line');
+  }
+
+  function openPrompt() {
+    if (!form.hidden) return;
+    const active = document.activeElement;
+    returnFocus = active instanceof HTMLElement && active !== document.body && !bar.contains(active) ? active : null;
+    setMode('prompt');
+    input.value = '';
+    historyAt = history.length;
+    input.focus({ preventScroll: true });
+  }
+
+  function close() {
+    setMode('line');
+    returnFocus?.focus({ preventScroll: true });
+    returnFocus = null;
+  }
+
+  /* Like tmux's display-message: replaces the status line for a moment. */
+  function say(text: string) {
+    msg.textContent = text;
+    live.textContent = text;
+    setMode('msg');
+    if (returnFocus) returnFocus.focus({ preventScroll: true });
+    else (document.activeElement as HTMLElement | null)?.blur();
+    msgTimer = window.setTimeout(close, Math.min(10000, 3000 + text.length * 45));
+  }
+
+  function go(target: string | HTMLElement, flash = false) {
+    const el = typeof target === 'string' ? document.getElementById(target) : target;
+    if (!el) return;
+    el.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: flash ? 'center' : 'start' });
+    if (flash) {
+      el.classList.add('is-flash');
+      setTimeout(() => el.classList.remove('is-flash'), 1400);
+    }
+  }
+
+  const dirs: Record<string, string> = { tools: 'tools', 'tools/': 'tools', apps: 'apps', 'apps/': 'apps' };
+  const ids = () => items.map((i) => i.id);
+
+  const commands: Record<string, (args: string[]) => string | void> = {
+    help: () =>
+      'help · ls · cd <dir> · cat about.txt · open <name> · copy <tool> · theme [light|dark] · whoami · date · exit — ctrl+b 0/1/2 switches windows',
+    ls: ([dir = '.']) => {
+      if (['.', '~', './', '~/nutrx-labs'].includes(dir)) return 'about.txt  tools/  apps/';
+      if (dir.startsWith('-')) return 'about.txt  tools/  apps/  (nothing hidden here. mostly.)';
+      const d = dirs[dir];
+      if (d) return items.filter((i) => i.kind === d.slice(0, -1)).map((i) => i.id).join('  ');
+      return `ls: ${dir}: No such file or directory`;
+    },
+    cd: ([dir = '~']) => {
+      if (['~', '/', '..', '.', '~/nutrx-labs', '-'].includes(dir)) {
+        go(document.body);
+        return '~/nutrx-labs';
+      }
+      const d = dirs[dir];
+      if (d) {
+        go(d);
+        return `~/nutrx-labs/${d}`;
+      }
+      if (find(dir)) return `cd: not a directory: ${dir} (try: open ${dir})`;
+      return `cd: no such file or directory: ${dir}`;
+    },
+    cat: ([file]) => {
+      if (!file) return 'usage: cat about.txt';
+      if (file === 'about.txt') return document.querySelector('.lead')?.textContent?.trim().replace(/\s+/g, ' ');
+      if (dirs[file]) return `cat: ${file}: Is a directory`;
+      return `cat: ${file}: No such file or directory`;
+    },
+    open: ([name]) => {
+      if (!name) return `usage: open <${ids().join('|')}|github>`;
+      if (name === 'github') {
+        window.open(github, '_blank', 'noopener');
+        return `opening ${github.replace('https://', '')}`;
+      }
+      const item = find(name);
+      if (!item) return `open: ${name}: not found (try: ls tools)`;
+      go(item.id, true);
+      return `${item.id}: ${item.about}`;
+    },
+    copy: ([name]) => {
+      if (!name) return 'usage: copy <tool>';
+      const item = find(name);
+      if (!item) return `copy: ${name}: not found`;
+      if (item.kind === 'app') return `copy: ${item.id} lives on the App Store, not in your shell`;
+      if (!item.commands.length) return `${item.id}: nothing to install yet. it's in the lab.`;
+      navigator.clipboard?.writeText(item.commands.join('\n'));
+      const n = item.commands.length;
+      return `copied ${n} command${n > 1 ? 's' : ''} for ${item.id}`;
+    },
+    theme: ([t]) => {
+      if (t === 'light' || t === 'dark') setTheme(t);
+      else if (!t || t === 'toggle') t = toggleTheme();
+      else return 'usage: theme [light|dark]';
+      return `theme: ${t}`;
+    },
+    whoami: () => 'guest',
+    pwd: () => '~/nutrx-labs',
+    date: () => new Date().toString(),
+    echo: (args) => args.join(' '),
+    uname: () => 'nutrx-labs static-html — no servers, no cookies, no tracking',
+    history: () => history.slice(-10).join(' · ') || 'history is empty',
+    sudo: () => 'guest is not in the sudoers file. This incident will be reported.',
+    rm: () => 'rm: permission denied. everything here runs on your side, just not like that.',
+    vim: () => "this is tmux, not vim. but :q works, if that's what you're after.",
+    git: () => 'this page is open source: github.com/a7ex-turcan/nutrx-web',
+    man: ([name]) => (name ? commands.open([name]) : 'what manual page do you want? (rtfm)'),
+    rtfm: () => 'read the fine manual: type help',
+    rtfq: () => 'SELECT * FROM secrets; → denied. writes wait for a human approval.',
+    rtfc: () => 'no contacts online. messages park in the status bar. like this one.',
+    rtfd: () => 'lgtfm',
+    lgtfm: () => 'lgtfm ✓',
+    coffee: () => 'Caffeine 280 / 200 mg · over. nutrx suggests water.',
+    hello: () => 'hi. type help to look around.',
+  };
+  const aliases: Record<string, string> = {
+    '?': 'help', 'list-commands': 'help', l: 'ls', ll: 'ls', vi: 'vim', nvim: 'vim', nano: 'vim', emacs: 'vim',
+    caffeine: 'coffee', hi: 'hello', hey: 'hello', 'display-message': 'echo', xdg: 'open',
+  };
+  const quit = new Set(['exit', 'quit', 'q', ':q', 'q!', ':q!', ':wq', 'logout', 'detach', 'clear']);
+
+  function run(raw: string) {
+    const text = raw.trim();
+    if (!text) return close();
+    if (history[history.length - 1] !== text) history.push(text);
+    const [first, ...args] = text.split(/\s+/);
+    const name = first.toLowerCase();
+    if (quit.has(name)) return close();
+    const cmd = commands[aliases[name] ?? name];
+    const out = cmd ? cmd(args) : `unknown command: ${first} (try help)`;
+    if (out) say(out);
+    else close();
+  }
+
+  /* Tab completes a command, or its argument when there's only one match. */
+  function complete() {
+    const parts = input.value.split(/\s+/);
+    const options =
+      parts.length === 1
+        ? Object.keys(commands)
+        : ({ open: [...ids(), 'github'], copy: ids(), man: ids(), cd: ['tools', 'apps', '~'], ls: ['tools', 'apps'],
+            cat: ['about.txt'], theme: ['light', 'dark'] } as Record<string, string[]>)[parts[0].toLowerCase()] ?? [];
+    const last = parts[parts.length - 1].toLowerCase();
+    const hits = options.filter((o) => o.startsWith(last));
+    if (hits.length === 1) {
+      parts[parts.length - 1] = hits[0];
+      input.value = parts.join(' ') + ' ';
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run(input.value);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || (e.ctrlKey && e.key === 'c')) {
+      e.preventDefault();
+      close();
+    } else if (e.key === 'Tab' && input.value) {
+      e.preventDefault();
+      complete();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      historyAt = Math.max(0, Math.min(history.length, historyAt + (e.key === 'ArrowUp' ? -1 : 1)));
+      input.value = history[historyAt] ?? '';
+    }
+  });
+  input.addEventListener('blur', () => {
+    // Leaving an empty prompt closes it; a half-typed command stays until Esc.
+    setTimeout(() => {
+      if (!form.hidden && !input.value && document.activeElement !== input) close();
+    }, 0);
+  });
+
+  /* A click on the bar (anywhere but a link) opens the prompt. */
+  bar.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a, form')) return;
+    openPrompt();
+  });
+
+  /* Keyboard: ":" opens the prompt; C-b is the tmux prefix. */
+  let prefix = false;
+  let prefixTimer: number | undefined;
+  const editable = (el: EventTarget | null) =>
+    el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+
+  document.addEventListener('keydown', (e) => {
+    if (editable(e.target)) return;
+    if (e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      prefix = true;
+      clearTimeout(prefixTimer);
+      prefixTimer = window.setTimeout(() => (prefix = false), 2000);
+      return;
+    }
+    if (prefix) {
+      prefix = false;
+      const keys: Record<string, () => void> = {
+        ':': openPrompt,
+        '0': () => go('tools'),
+        '1': () => go('apps'),
+        '2': () => window.open(github, '_blank', 'noopener'),
+        '?': () => run('help'),
+        d: () => say('[detached (from session nutrx-labs)] ...just kidding. you can never leave.'),
+        c: () => say('create-window: this is a static site. three windows is plenty.'),
+      };
+      const action = keys[e.key];
+      if (action) {
+        e.preventDefault();
+        action();
+      }
+      return;
+    }
+    if (e.key === ':' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      openPrompt();
+    } else if (e.key === 'Escape' && !msg.hidden) {
+      close();
+    }
+  });
+
+  console.info(
+    '%c[nutrx-labs]%c 0:tools* 1:apps 2:github\n\npsst. this status bar is a tmux prompt. press : (or ctrl+b :) and type help.',
+    'background:#FFB547;color:#16130C;font-weight:600;padding:2px 4px',
+    'background:#FFB547;color:#16130C;padding:2px 4px',
+  );
 </script>
 
 <style>
@@ -56,20 +341,34 @@ const year = new Date().getFullYear();
     color: var(--accent-ink);
     font-size: 12.5px;
   }
-  .status__inner {
+  /* While the prompt or a message is up, pin the bar to the viewport like a real tmux status line. */
+  .status.is-open {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 0.18);
+  }
+  .status__inner { cursor: text; }
+  .status__line {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 0 24px;
   }
+  .status__line[hidden],
+  .status__prompt[hidden],
+  .status__msg[hidden] { display: none; }
   .status__nav {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0 4px;
   }
-  .status a { color: var(--accent-ink); }
+  .status a {
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
   .status a:focus-visible { outline-color: var(--accent-ink); }
   .status__session {
     padding-right: 12px;
@@ -80,4 +379,30 @@ const year = new Date().getFullYear();
   .win__mark { visibility: hidden; }
   .win.is-active { font-weight: 600; }
   .win.is-active .win__mark { visibility: visible; }
+
+  .status__prompt {
+    display: flex;
+    width: 100%;
+    gap: 2px;
+  }
+  .status__colon { font-weight: 600; }
+  .status__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent-ink);
+    caret-color: var(--accent-ink);
+    font: inherit;
+    outline: none;
+  }
+  .status__msg {
+    padding: 10px 0;
+    line-height: 1.5;
+  }
+  @media (pointer: coarse) {
+    /* Keep iOS from zooming in on focus. */
+    .status__input { font-size: 16px; }
+  }
 </style>
