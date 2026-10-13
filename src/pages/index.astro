@@ -6,9 +6,9 @@ import ToolCard from '../components/ToolCard.astro';
 import AppCard from '../components/AppCard.astro';
 import Footer from '../components/Footer.astro';
 import StatusBar from '../components/StatusBar.astro';
-import { getTools, apps } from '../lib/products';
+import { getTools, getApps } from '../lib/products';
 
-const tools = await getTools();
+const [tools, apps] = await Promise.all([getTools(), getApps()]);
 ---
 
 <Base>

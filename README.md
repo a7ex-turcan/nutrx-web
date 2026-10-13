@@ -20,12 +20,16 @@ Requires Node 22+.
 | Path | What |
 |---|---|
 | `src/data/products.json` | Copy for every tool and app card and for the hero terminal listing. |
-| `src/lib/products.ts` | Loads the products and, **at build time**, replaces tool versions with each repo's latest GitHub release (`v1.13.0` → `v1.13`). If the fetch fails, the versions in the JSON are used. Set `SKIP_VERSION_FETCH=1` to skip it, or `GITHUB_TOKEN` to avoid rate limits in CI. |
+| `src/lib/products.ts` | Loads the products and looks up versions **at build time**: each tool's latest GitHub release (`v1.13.0` → `v1.13`) and, for apps with an `appStoreId`, the App Store version and price. If a lookup fails, the values in the JSON are used. Set `SKIP_VERSION_FETCH=1` to skip the lookups, or `GITHUB_TOKEN` to avoid rate limits. |
 | `src/styles/tokens.css` | Design tokens for the dark (default) and light themes. |
 | `src/components/` | Header, hero terminal, tool/app cards, footer, tmux-style status bar. |
 | `public/` | Favicon, touch icon, OG image, app icons. |
 | `scripts/og/` | HTML sources for the OG image and touch icon (see its README to re-render). |
 | `design/` | The original design handoff: reference page, tokens and screenshots. |
+
+## Deploys
+
+GitHub Pages, via `.github/workflows/deploy.yml`: on every push to `main`, daily at 04:17 UTC (to pick up new releases and App Store versions), and on demand from the Actions tab. DNS and redirects live in Cloudflare.
 
 ## Theme
 

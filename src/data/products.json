@@ -1,5 +1,5 @@
 {
-  "_note": "Content for the product cards and the hero terminal listing. Tool versions are refreshed from each repo's latest GitHub release at build time (src/lib/products.ts); the values here are the fallback.",
+  "_note": "Content for the product cards and the hero terminal listing. Versions are looked up at build time (src/lib/products.ts): tools from each repo's latest GitHub release, apps with an appStoreId from the App Store. The values here are the fallback.",
   "tools": [
     {
       "id": "rtfm",
@@ -36,9 +36,9 @@
       "name": "rtfq",
       "expansion": "Remote Tool For Queries",
       "status": "early",
-      "version": "0.1",
+      "version": "0.7",
       "license": "MIT",
-      "badge": "early · v0.1 · MIT",
+      "badge": "early · v0.7 · MIT",
       "interfaces": [
         "server",
         "cli",
@@ -52,7 +52,7 @@
       ],
       "listing": {
         "summary": "Remote Tool For Queries",
-        "right": "v0.1"
+        "right": "v0.7"
       },
       "links": [
         {
@@ -70,9 +70,9 @@
       "name": "rtfc",
       "expansion": "Relay Tool For Contacts",
       "status": "early",
-      "version": "0.3",
+      "version": "0.12",
       "license": "MIT",
-      "badge": "early · v0.3 · MIT",
+      "badge": "early · v0.12 · MIT",
       "interfaces": [
         "claude code plugin",
         "daemon",
@@ -85,7 +85,7 @@
       ],
       "listing": {
         "summary": "Relay Tool For Contacts",
-        "right": "v0.3"
+        "right": "v0.12"
       },
       "links": [
         {
@@ -134,7 +134,8 @@
       "name": "nutrx",
       "platforms": "iPhone · Apple Watch · widgets",
       "status": "live",
-      "badge": "v1.10 · free",
+      "badge": "v1.11 · free",
+      "appStoreId": "6760843478",
       "description": "A privacy-first nutrient tracker. Define any vitamin, mineral or supplement — or just caffeine and water — set daily targets, and log with a tap from your phone, your wrist or a widget. No accounts, no servers, no ads.",
       "listing": {
         "summary": "nutrients · iPhone + Watch",
