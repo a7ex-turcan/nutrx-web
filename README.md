@@ -1,6 +1,6 @@
 # nutrx-web
 
-The homepage for [nutrx-labs.com](https://nutrx-labs.com): the rtf\* developer tools and the nutrx and Softfill iOS apps on one page.
+The homepage for [nutrx-labs.com](https://nutrx-labs.com): the rtf\* developer tools and the nutrx, Softfill and Where's My Crown? iOS apps on one page.
 
 Static site built with [Astro](https://astro.build). There's no backend, and the page makes no third-party requests: fonts and icons are self-hosted.
 
