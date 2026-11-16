@@ -1,11 +1,12 @@
 ---
-import { site, type Tool, type App } from '../lib/products';
+import { site, type Tool, type App, type Work } from '../lib/products';
 
 interface Props {
   tools: Tool[];
   apps: App[];
+  work: Work[];
 }
-const { tools, apps } = Astro.props;
+const { tools, apps, work } = Astro.props;
 ---
 
 <section class="hero">
@@ -41,6 +42,16 @@ const { tools, apps } = Astro.props;
               <span class="row__name">{a.id}</span>
               <span class="row__sum muted">{a.listing.summary}</span>
               <span class="muted">{a.listing.right}</span>
+            </a>
+          ))
+        }
+        <p class="term__dir term__dir--apps muted">work/</p>
+        {
+          work.map((w) => (
+            <a href={`#${w.id}`} class="row">
+              <span class="row__name">{w.id}</span>
+              <span class="row__sum muted">{w.listing.summary}</span>
+              <span class="muted">{w.listing.right}</span>
             </a>
           ))
         }

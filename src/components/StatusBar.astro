@@ -8,6 +8,7 @@ const home = Astro.url.pathname === '/';
 const items = [
   ...data.tools.map((t) => ({ id: t.id, kind: 'tool', about: t.expansion, commands: t.commands })),
   ...data.apps.map((a) => ({ id: a.id, kind: 'app', about: `${a.name} — ${a.listing.summary}`, commands: [] })),
+  ...data.work.map((w) => ({ id: w.id, kind: 'work', about: `${w.name} — ${w.listing.summary}, ${w.client}`, commands: [] })),
 ];
 ---
 
@@ -18,7 +19,8 @@ const items = [
         <a href={home ? '#top' : '/'} class="hit status__session">[nutrx-labs]</a>
         <a href="/#tools" class="hit win is-active" data-win="tools">0:tools<span class="win__mark">*</span></a>
         <a href="/#apps" class="hit win" data-win="apps">1:apps<span class="win__mark">*</span></a>
-        <a href={site.links.github} class="hit win">2:github</a>
+        <a href="/#work" class="hit win" data-win="work">2:work<span class="win__mark">*</span></a>
+        <a href={site.links.github} class="hit win">3:github</a>
       </nav>
       <span class="hit">© {year} nutrx labs</span>
     </div>
@@ -48,7 +50,7 @@ const items = [
 
   /* The "*" marks the section in view, like tmux's active window. */
   const wins = document.querySelectorAll<HTMLElement>('[data-win]');
-  const sections = ['tools', 'apps'];
+  const sections = ['tools', 'apps', 'work'];
   let ticking = false;
 
   function spy() {
@@ -80,7 +82,7 @@ const items = [
   spy();
 
   /* Easter egg: the status bar is a tmux command prompt.
-     Open it with ":", "C-b :" or a click on the bar; C-b 0/1/2 switch windows. */
+     Open it with ":", "C-b :" or a click on the bar; C-b 0/1/2/3 switch windows. */
   type Item = { id: string; kind: 'tool' | 'app'; about: string; commands: string[] };
 
   const bar = document.querySelector<HTMLElement>('[data-status]')!;
@@ -196,17 +198,20 @@ const items = [
     }
   }
 
-  const dirs: Record<string, string> = { tools: 'tools', 'tools/': 'tools', apps: 'apps', 'apps/': 'apps' };
+  const dirs: Record<string, string> = {
+    tools: 'tools', 'tools/': 'tools', apps: 'apps', 'apps/': 'apps', work: 'work', 'work/': 'work',
+  };
+  const kinds: Record<string, string> = { tools: 'tool', apps: 'app', work: 'work' };
   const ids = () => items.map((i) => i.id);
 
   const commands: Record<string, (args: string[]) => Out> = {
     help: () =>
-      'help · ls · cd <dir> · cat about.txt · open <name> · man <tool> · copy <tool> · theme [light|dark] · whoami · date · cowsay · exit — ctrl+b 0/1/2 switches windows',
+      'help · ls · cd <dir> · cat about.txt · open <name> · man <tool> · copy <tool> · theme [light|dark] · whoami · date · cowsay · exit — ctrl+b 0/1/2/3 switches windows',
     ls: ([dir = '.']) => {
-      if (['.', '~', './', '~/nutrx-labs'].includes(dir)) return 'about.txt  tools/  apps/';
-      if (dir.startsWith('-')) return 'about.txt  tools/  apps/  (nothing hidden here. mostly.)';
+      if (['.', '~', './', '~/nutrx-labs'].includes(dir)) return 'about.txt  tools/  apps/  work/';
+      if (dir.startsWith('-')) return 'about.txt  tools/  apps/  work/  (nothing hidden here. mostly.)';
       const d = dirs[dir];
-      if (d) return items.filter((i) => i.kind === d.slice(0, -1)).map((i) => i.id).join('  ');
+      if (d) return items.filter((i) => i.kind === kinds[d]).map((i) => i.id).join('  ');
       return `ls: ${dir}: No such file or directory`;
     },
     cd: ([dir = '~']) => {
@@ -245,6 +250,7 @@ const items = [
       const item = find(name);
       if (!item) return `copy: ${name}: not found`;
       if (item.kind === 'app') return `copy: ${item.id} lives on the App Store, not in your shell`;
+      if (item.kind === 'work') return `copy: ${item.id} is a client's system, not a package. try: open ${item.id}`;
       if (!item.commands.length) return `${item.id}: nothing to install yet. it's in the lab.`;
       navigator.clipboard?.writeText(item.commands.join('\n'));
       const n = item.commands.length;
@@ -317,7 +323,7 @@ const items = [
     const options =
       parts.length === 1
         ? Object.keys(commands)
-        : ({ open: [...ids(), 'github'], copy: ids(), man: ids(), cd: ['tools', 'apps', '~'], ls: ['tools', 'apps'],
+        : ({ open: [...ids(), 'github'], copy: ids(), man: ids(), cd: ['tools', 'apps', 'work', '~'], ls: ['tools', 'apps', 'work'],
             cat: ['about.txt'], theme: ['light', 'dark'] } as Record<string, string[]>)[parts[0].toLowerCase()] ?? [];
     const last = parts[parts.length - 1].toLowerCase();
     const hits = options.filter((o) => o.startsWith(last));
@@ -379,10 +385,11 @@ const items = [
         ':': openPrompt,
         '0': () => go('tools'),
         '1': () => go('apps'),
-        '2': () => window.open(github, '_blank', 'noopener'),
+        '2': () => go('work'),
+        '3': () => window.open(github, '_blank', 'noopener'),
         '?': () => run('help'),
         d: () => say('[detached (from session nutrx-labs)] ...just kidding. you can never leave.'),
-        c: () => say('create-window: this is a static site. three windows is plenty.'),
+        c: () => say('create-window: this is a static site. four windows is plenty.'),
       };
       const action = keys[e.key];
       if (action) {
@@ -400,7 +407,7 @@ const items = [
   });
 
   console.info(
-    '%c[nutrx-labs]%c 0:tools* 1:apps 2:github\n\npsst. this status bar is a tmux prompt. press : (or ctrl+b :) and type help.',
+    '%c[nutrx-labs]%c 0:tools* 1:apps 2:work 3:github\n\npsst. this status bar is a tmux prompt. press : (or ctrl+b :) and type help.',
     'background:#FFB547;color:#16130C;font-weight:600;padding:2px 4px',
     'background:#FFB547;color:#16130C;padding:2px 4px',
   );

@@ -1,11 +1,24 @@
 ---
-import type { App } from '../lib/products';
+import type { App, Work } from '../lib/products';
 
 interface Props {
-  app: App;
+  /** An app, or a system built for a client (which also lists its stack and says who it's for). */
+  app: App | Work;
 }
 const { app } = Astro.props;
 const soon = app.status === 'soon';
+const work = 'client' in app ? app : null;
+
+// GetBetter's preview: a back squat's last seven weeks, with a deload in week 4, and next week's load.
+const loads = [
+  { label: 'W1', h: 40 },
+  { label: 'W2', h: 46 },
+  { label: 'W3', h: 52 },
+  { label: 'D', h: 30, deload: true },
+  { label: 'W5', h: 58 },
+  { label: 'W6', h: 64 },
+  { label: 'W7', h: 70, next: true },
+];
 
 const nutrients = [
   { name: 'Vitamin D', value: '400 / 1000 IU', pct: 40 },
@@ -22,6 +35,7 @@ const nutrients = [
       <div class="app__title">
         <h3>{app.name}</h3>
         <p class="mono muted">{app.platforms}</p>
+        {work && <p class="mono app__client">{work.client}</p>}
       </div>
     </div>
     <span class:list={['badge', { 'badge--lab': soon }]}>{app.badge}</span>
@@ -115,7 +129,40 @@ const nutrients = [
     )
   }
 
+  {
+    app.id === 'getbetter' && (
+      <div class="screen lift" aria-hidden="true">
+        <div class="lift__card">
+          <span class="lift__label">Next week</span>
+          <span class="lift__name">Back squat</span>
+          <span class="lift__load">
+            <span class="lift__from">85</span>
+            <span class="lift__arrow">→</span>
+            87.5<span class="lift__unit">kg</span>
+          </span>
+          <span class="lift__why">+2.5 kg, from what Andrei logged</span>
+        </div>
+        <div class="lift__bars">
+          {loads.map((l) => (
+            <span class="lift__week">
+              <span class:list={['lift__bar', { 'is-deload': l.deload, 'is-next': l.next }]} style={`height: ${l.h}px`} />
+              <span class="lift__wk">{l.label}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   <p class="card__desc">{app.description}</p>
+
+  {
+    work && (
+      <ul class="chips" aria-label="Built with">
+        {work.stack.map((s) => <li>{s}</li>)}
+      </ul>
+    )
+  }
 
   <div class="app__actions">
     {
@@ -271,6 +318,84 @@ const nutrients = [
     letter-spacing: 2px;
   }
   .maze__stars span { color: var(--screen-track); }
+
+  /* GetBetter preview: next week's load, and the weeks that led to it */
+  .lift {
+    padding: 20px 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px 24px;
+  }
+  .lift__card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .lift__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--screen-muted);
+  }
+  .lift__name { font-weight: 700; font-size: 16px; }
+  .lift__load {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .lift__from { font-size: 18px; color: var(--screen-muted); }
+  .lift__arrow { font-size: 18px; color: #C2410C; }
+  .lift__unit { font-size: 14px; font-weight: 600; color: var(--screen-muted); }
+  .lift__why { font-size: 13px; color: var(--screen-muted); }
+  .lift__bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .lift__week {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .lift__bar {
+    width: 22px;
+    border-radius: 5px;
+    background: var(--screen-track);
+  }
+  .lift__bar.is-deload { background: transparent; box-shadow: inset 0 0 0 1.5px var(--screen-track); }
+  .lift__bar.is-next { background: #FF5B1F; }
+  .lift__wk {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--screen-muted);
+  }
+
+  .app__client {
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+  .chips li {
+    padding: 3px 9px;
+    border-radius: var(--radius-chip);
+    background: var(--chip);
+    color: var(--fg-2);
+  }
 
   .app__actions {
     margin-top: auto;

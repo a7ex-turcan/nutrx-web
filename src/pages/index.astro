@@ -6,16 +6,17 @@ import ToolCard from '../components/ToolCard.astro';
 import AppCard from '../components/AppCard.astro';
 import Footer from '../components/Footer.astro';
 import StatusBar from '../components/StatusBar.astro';
-import { getTools, getApps } from '../lib/products';
+import { getTools, getApps, getWork } from '../lib/products';
 
 const [tools, apps] = await Promise.all([getTools(), getApps()]);
+const work = getWork();
 ---
 
 <Base>
   <div class="container">
     <Header />
     <main>
-      <Hero tools={tools} apps={apps} />
+      <Hero tools={tools} apps={apps} work={work} />
 
       <section id="tools" class="section">
         <div class="section-head">
@@ -45,6 +46,22 @@ const [tools, apps] = await Promise.all([getTools(), getApps()]);
         </div>
         <div class="grid">
           {apps.map((app) => <AppCard app={app} />)}
+        </div>
+      </section>
+
+      <section id="work" class="section">
+        <div class="section-head">
+          <div class="section-head__title">
+            <p class="section-head__label">// client work</p>
+            <h2>Built for clients.</h2>
+          </div>
+          <p class="section-head__intro">
+            Whole systems for someone else's business: the iPhone and Apple Watch apps, the web app, the backend
+            and the servers it runs on.
+          </p>
+        </div>
+        <div class="grid grid--fill">
+          {work.map((w) => <AppCard app={w} />)}
         </div>
       </section>
     </main>

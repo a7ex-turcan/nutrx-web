@@ -1,6 +1,6 @@
 # nutrx-web
 
-The homepage for [nutrx-labs.com](https://nutrx-labs.com): the rtf\* developer tools and the nutrx, Softfill and Where's My Crown? iOS apps on one page.
+The homepage for [nutrx-labs.com](https://nutrx-labs.com): the rtf\* developer tools, the nutrx, Softfill and Where's My Crown? iOS apps, and client work (GetBetter) on one page.
 
 Static site built with [Astro](https://astro.build). There's no backend, and the page makes no third-party requests: fonts and icons are self-hosted.
 
@@ -19,7 +19,7 @@ Requires Node 22+.
 
 | Path | What |
 |---|---|
-| `src/data/products.json` | Copy for every tool and app card and for the hero terminal listing. |
+| `src/data/products.json` | Copy for every tool, app and client work card and for the hero terminal listing. Client work (`work`) is shown with the app card, plus who it's for (`client`) and what it's built with (`stack`); it has no versions to look up. |
 | `src/lib/products.ts` | Loads the products and looks up versions **at build time**: each tool's latest GitHub release (`v1.13.0` → `v1.13`) and, for apps with an `appStoreId`, the App Store version and price. If a lookup fails, the values in the JSON are used. Set `SKIP_VERSION_FETCH=1` to skip the lookups, or `GITHUB_TOKEN` to avoid rate limits. |
 | `src/content/tools/<id>.yaml` | Copy for each tool page (`/rtfm/`, `/rtfq/`, …): tagline, highlights, steps, notes. The schema and its length limits are in `src/content.config.ts`. Wrap commands and identifiers in `` `backticks` `` to show them as inline code. |
 | `src/pages/[tool].astro` | The tool page template. A new YAML file plus a matching entry in `products.json` makes a new page. |

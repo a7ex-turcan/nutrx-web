@@ -196,6 +196,36 @@
       ]
     }
   ],
+  "work": [
+    {
+      "id": "getbetter",
+      "name": "GetBetter",
+      "platforms": "iPhone · Apple Watch · coach web app",
+      "status": "soon",
+      "badge": "coming soon",
+      "client": "built for a client",
+      "description": "A coaching platform for personal trainers and their clients, launching in Moldova. Coaches plan sessions, programs and bookings; clients follow them on iPhone and Apple Watch, and next week's loads follow what they actually lifted. Coaches pay, clients use it free, in English, Română and Русский.",
+      "stack": [
+        "swiftui",
+        "watchos",
+        "react",
+        ".net",
+        "postgres"
+      ],
+      "listing": {
+        "summary": "coaching · iPhone + Watch + web",
+        "right": "soon"
+      },
+      "icon": "/icons/getbetter.png",
+      "links": [
+        {
+          "label": "Visit GetBetter →",
+          "href": "https://getbetterclub.com",
+          "kind": "primary"
+        }
+      ]
+    }
+  ],
   "site": {
     "owner": "Alex Țurcan",
     "location": "Chișinău, Moldova",

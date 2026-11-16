@@ -2,6 +2,8 @@ import data from '../data/products.json';
 
 export type Tool = (typeof data.tools)[number];
 export type App = (typeof data.apps)[number];
+/** Systems built for clients. They have no versions to look up. */
+export type Work = (typeof data.work)[number];
 
 const OWNER = 'a7ex-turcan';
 
@@ -64,6 +66,10 @@ export async function getApps(): Promise<App[]> {
       return listing ? { ...app, badge: `v${listing.version} · ${listing.price}` } : app;
     }),
   );
+}
+
+export function getWork(): Work[] {
+  return data.work;
 }
 
 export const site = data.site;

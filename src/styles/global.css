@@ -116,6 +116,8 @@ button:focus-visible {
   grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));
   gap: 20px;
 }
+/* Keeps a lone card to one column, as in the sections with more. */
+.grid--fill { grid-template-columns: repeat(auto-fill, minmax(min(520px, 100%), 1fr)); }
 .card {
   display: flex;
   flex-direction: column;
