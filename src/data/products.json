@@ -189,12 +189,13 @@
       "id": "princess",
       "name": "Where's My Crown?",
       "platforms": "iPhone · iPad",
-      "status": "soon",
-      "badge": "coming soon",
-      "description": "A gentle 16-bit maze game for little kids, about 3 to 7. Help the princess find her lost crown, tiptoe past a fire-puffing dragon, and call a unicorn, a fairy or a wise old owl for help. Every message is read aloud, and a grown-up check sits in front of anything that costs money. A game idea by Nati, age 4.",
+      "status": "live",
+      "badge": "v1.1 · free",
+      "appStoreId": "6825225682",
+      "description": "A gentle 16-bit maze game for little kids, about 3 to 6. Help the princess find her lost crown, tiptoe past a fire-puffing dragon, and bring a friend along: a unicorn, Santa, a duck or a wise old owl. Every message is read aloud, and a grown-up check sits in front of anything that costs money. A game idea by Nati, age 4. Jump mode is coming next.",
       "listing": {
         "summary": "maze game · iPhone + iPad",
-        "right": "soon"
+        "right": "live"
       },
       "icon": "/icons/wheres-my-crown.png",
       "links": [
@@ -202,6 +203,11 @@
           "label": "Visit the game →",
           "href": "https://princess.nutrx-labs.com",
           "kind": "primary"
+        },
+        {
+          "label": "App Store ↗",
+          "href": "https://apps.apple.com/app/id6825225682",
+          "kind": "link"
         }
       ]
     }
