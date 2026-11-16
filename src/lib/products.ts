@@ -28,6 +28,12 @@ function majorMinor(version?: string): string | null {
   return match ? `${match[1]}.${match[2]}` : null;
 }
 
+/** A tool's tag, keeping a pre-release's suffix: "v1.13.0" -> "1.13", "v0.1.0-rc.2" -> "0.1-rc.2" */
+function toolVersion(tag?: string): string | null {
+  const match = tag?.match(/^v?(\d+)\.(\d+)(?:\.\d+)?(-[0-9A-Za-z.]+)?$/);
+  return match ? `${match[1]}.${match[2]}${match[3] ?? ''}` : null;
+}
+
 async function latestRelease(repo: string): Promise<string | null> {
   const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
   const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
@@ -36,7 +42,13 @@ async function latestRelease(repo: string): Promise<string | null> {
     `https://api.github.com/repos/${OWNER}/${repo}/releases/latest`,
     headers,
   );
-  return majorMinor(release?.tag_name);
+  if (release?.tag_name) return toolVersion(release.tag_name);
+  // GitHub's "latest" skips pre-releases, so a tool with only release candidates gets its newest one.
+  const releases = await fetchJson<{ tag_name?: string; draft?: boolean }[]>(
+    `https://api.github.com/repos/${OWNER}/${repo}/releases?per_page=10`,
+    headers,
+  );
+  return toolVersion(releases?.find((r) => !r.draft)?.tag_name);
 }
 
 async function appStoreListing(id: string): Promise<{ version: string; price: string } | null> {

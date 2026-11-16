@@ -102,28 +102,38 @@
       "id": "rtfd",
       "name": "rtfd",
       "expansion": "Read The Fine Diff",
-      "status": "lab",
-      "version": null,
+      "status": "early",
+      "version": "0.1-rc.2",
       "license": "MIT",
-      "badge": "in the lab · MIT",
+      "badge": "early · v0.1-rc.2 · MIT",
       "interfaces": [
         "watcher",
-        "any agent"
+        "cli",
+        "claude code",
+        "copilot cli"
       ],
-      "description": "A pull-request review watcher for any AI agent. It hands each PR to Claude Code, Copilot CLI or whichever agent you configure, runs it read-only, and posts one review with inline comments back to the PR.",
+      "description": "A pull-request review watcher for any AI agent. It hands each PR on GitHub, Azure DevOps or Bitbucket to Claude Code or Copilot CLI, runs it read-only, and posts one review with inline comments back. After a push it reviews only what changed.",
       "comment_lines": [
-        "design settled, build in progress",
+        "the agent reads, rtfd writes",
         "nothing to flag? it posts: lgtfm"
       ],
-      "commands": [],
+      "commands": [
+        "rtfd validate",
+        "rtfd run myapp --pr 12 --dry-run",
+        "rtfd serve"
+      ],
       "listing": {
         "summary": "Read The Fine Diff",
-        "right": "lab"
+        "right": "v0.1-rc.2"
       },
       "links": [
         {
           "label": "github.com/a7ex-turcan/rtfd",
           "href": "https://github.com/a7ex-turcan/rtfd"
+        },
+        {
+          "label": "releases",
+          "href": "https://github.com/a7ex-turcan/rtfd/releases"
         }
       ]
     }
